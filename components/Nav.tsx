@@ -3,10 +3,11 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
-import { MapPin, Menu, X, ChevronDown } from "lucide-react";
+import { MapPin, Menu, X, ChevronDown, Music } from "lucide-react";
 import { cities } from "@/lib/cities";
 import { cn } from "@/lib/utils";
 import Search from "@/components/Search";
+import UserMenu from "@/components/UserMenu";
 
 export default function Nav() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -90,14 +91,35 @@ export default function Nav() {
 
             <Search />
 
+            {/* Venues link */}
+            <Link
+              href={`/${currentCity.slug}/venues`}
+              className={cn(
+                "flex items-center gap-1.5 text-sm transition-colors",
+                pathname === `/${currentCity.slug}/venues`
+                  ? "text-accent"
+                  : "text-text-muted hover:text-text"
+              )}
+            >
+              <Music className="w-4 h-4" />
+              Venues
+            </Link>
+
             {/* Map link */}
             <Link
               href={`/${currentCity.slug}/map`}
-              className="flex items-center gap-1.5 text-sm text-text-muted hover:text-text transition-colors"
+              className={cn(
+                "flex items-center gap-1.5 text-sm transition-colors",
+                pathname === `/${currentCity.slug}/map`
+                  ? "text-accent"
+                  : "text-text-muted hover:text-text"
+              )}
             >
               <MapPin className="w-4 h-4" />
               Map
             </Link>
+
+            <UserMenu />
           </div>
 
           {/* Mobile menu button */}
@@ -160,7 +182,15 @@ export default function Nav() {
 
             <Search />
 
-            {/* Map link */}
+            {/* Venues + Map links */}
+            <Link
+              href={`/${currentCity.slug}/venues`}
+              onClick={() => setMobileOpen(false)}
+              className="flex items-center gap-2 text-text-muted hover:text-text py-2"
+            >
+              <Music className="w-4 h-4" />
+              Venues
+            </Link>
             <Link
               href={`/${currentCity.slug}/map`}
               onClick={() => setMobileOpen(false)}
@@ -169,6 +199,10 @@ export default function Nav() {
               <MapPin className="w-4 h-4" />
               Map View
             </Link>
+
+            <div className="pt-2 border-t border-border">
+              <UserMenu />
+            </div>
           </div>
         </div>
       )}

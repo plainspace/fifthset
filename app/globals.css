@@ -125,3 +125,13 @@ body {
 .grid > .card-enter:nth-child(7) { animation-delay: 180ms; }
 .grid > .card-enter:nth-child(8) { animation-delay: 210ms; }
 .grid > .card-enter:nth-child(9) { animation-delay: 240ms; }
+
+/* Hide scrollbar */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}

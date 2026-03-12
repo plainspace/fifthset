@@ -6,6 +6,7 @@ import { City, Event, TimeOfDay } from "@/lib/types";
 import { getTimeOfDay, getDateLabel, formatDateFull } from "@/lib/utils";
 import FilterBar from "@/components/FilterBar";
 import EventCard from "@/components/EventCard";
+import FeaturedVenues from "@/components/FeaturedVenues";
 
 interface GroupedListingsViewProps {
   city: City;
@@ -25,6 +26,18 @@ export default function GroupedListingsView({
   const [activeRegion, setActiveRegion] = useState<string | undefined>();
   const [activeTime, setActiveTime] = useState<TimeOfDay | undefined>();
 
+  const featuredVenues = useMemo(() => {
+    const seen = new Set<string>();
+    return events
+      .filter((e) => {
+        if (e.venue.sponsor_tier === "free") return false;
+        if (seen.has(e.venue.id)) return false;
+        seen.add(e.venue.id);
+        return true;
+      })
+      .map((e) => e.venue);
+  }, [events]);
+
   const filteredEvents = useMemo(() => {
     return events
       .filter((e) => !activeRegion || e.venue.region === activeRegion)
@@ -43,14 +56,19 @@ export default function GroupedListingsView({
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-      <div className="mb-8">
-        <h1 className="font-serif text-3xl sm:text-4xl text-text">
-          {title} in{" "}
-          <span className="text-accent">{city.name}</span>
-        </h1>
-        <p className="text-text-muted mt-2">
-          <span className="font-mono text-sm">{dateRange}</span>
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 mb-8">
+        <div>
+          <h1 className="font-serif text-3xl sm:text-4xl text-text">
+            {title} in{" "}
+            <span className="text-accent">{city.name}</span>
+          </h1>
+          <p className="text-text-muted mt-2">
+            <span className="font-mono text-sm">{dateRange}</span>
+          </p>
+        </div>
+        {featuredVenues.length > 0 && (
+          <FeaturedVenues venues={featuredVenues} citySlug={city.slug} />
+        )}
       </div>
 
       <div className="mb-8">

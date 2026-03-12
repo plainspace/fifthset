@@ -1,5 +1,7 @@
 import { notFound } from "next/navigation";
 import { getCityBySlug, getCitySlugs } from "@/lib/cities";
+import { createClient } from "@/lib/supabase/server";
+import { getVenues } from "@/lib/supabase/queries";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 
@@ -28,6 +30,12 @@ export default async function CityLayout({
   const cityData = getCityBySlug(city);
   if (!cityData) notFound();
 
+  const supabase = await createClient();
+  const allVenues = await getVenues(supabase, city);
+  const featuredVenues = allVenues.filter(
+    (v) => v.sponsor_tier === "marquee" || v.sponsor_tier === "spotlight"
+  );
+
   return (
     <>
       <Nav />
@@ -36,7 +44,7 @@ export default async function CityLayout({
           {children}
         </div>
       </main>
-      <Footer />
+      <Footer featuredVenues={featuredVenues} citySlug={city} />
     </>
   );
 }

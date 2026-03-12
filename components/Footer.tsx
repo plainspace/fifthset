@@ -1,15 +1,27 @@
 import Link from 'next/link';
+import FeaturedVenues from "@/components/FeaturedVenues";
+import type { Venue } from "@/lib/types";
 
-export default function Footer() {
+interface FooterProps {
+  featuredVenues?: Venue[];
+  citySlug?: string;
+}
+
+export default function Footer({ featuredVenues, citySlug }: FooterProps = {}) {
   return (
     <footer className="border-t border-border mt-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
         <div className="flex flex-col sm:flex-row justify-between items-start gap-8">
-          <div>
-            <span className="font-serif text-lg text-accent">Fifth Set</span>
-            <p className="text-text-muted text-sm mt-2 max-w-xs text-balance">
-              Find live jazz tonight. Every city, every venue, every set.
-            </p>
+          <div className="space-y-6">
+            <div>
+              <span className="font-serif text-lg text-accent">Fifth Set</span>
+              <p className="text-text-muted text-sm mt-2 max-w-xs text-balance">
+                Find live jazz tonight. Every city, every venue, every set.
+              </p>
+            </div>
+            {featuredVenues && featuredVenues.length > 0 && citySlug && (
+              <FeaturedVenues venues={featuredVenues} citySlug={citySlug} variant="footer" />
+            )}
           </div>
           <div className="flex gap-8 text-sm text-text-muted">
             <div className="space-y-2">

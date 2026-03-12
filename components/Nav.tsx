@@ -6,6 +6,7 @@ import { useParams, usePathname } from "next/navigation";
 import { MapPin, Menu, X, ChevronDown } from "lucide-react";
 import { cities } from "@/lib/cities";
 import { cn } from "@/lib/utils";
+import Search from "@/components/Search";
 
 export default function Nav() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -87,6 +88,8 @@ export default function Nav() {
               ))}
             </div>
 
+            <Search />
+
             {/* Map link */}
             <Link
               href={`/${currentCity.slug}/map`}
@@ -154,6 +157,8 @@ export default function Nav() {
                 ))}
               </div>
             </div>
+
+            <Search />
 
             {/* Map link */}
             <Link

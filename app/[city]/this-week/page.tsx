@@ -2,24 +2,20 @@ import { notFound } from "next/navigation";
 import { getCityBySlug, getCitySlugs } from "@/lib/cities";
 import { createClient } from "@/lib/supabase/server";
 import { getEvents } from "@/lib/supabase/queries";
-import { formatDateFull } from "@/lib/utils";
+import { formatDateFull, getLocalDate, getLocalDay } from "@/lib/utils";
 import GroupedListingsView from "@/components/GroupedListingsView";
 
 export function generateStaticParams() {
   return getCitySlugs().map((city) => ({ city }));
 }
 
-function getThisWeekDates(): string[] {
-  const today = new Date();
-  const day = today.getDay();
-  const monday = new Date(today);
-  monday.setDate(today.getDate() - (day === 0 ? 6 : day - 1));
+function getThisWeekDates(timezone: string): string[] {
+  const day = getLocalDay(timezone);
+  const mondayOffset = day === 0 ? -6 : 1 - day;
 
   const dates: string[] = [];
   for (let i = 0; i < 7; i++) {
-    const d = new Date(monday);
-    d.setDate(monday.getDate() + i);
-    dates.push(d.toISOString().split("T")[0]);
+    dates.push(getLocalDate(timezone, mondayOffset + i));
   }
   return dates;
 }
@@ -29,7 +25,7 @@ export default async function ThisWeekPage({ params }: { params: Promise<{ city:
   const city = getCityBySlug(citySlug);
   if (!city) notFound();
 
-  const weekDates = getThisWeekDates();
+  const weekDates = getThisWeekDates(city.timezone);
   const supabase = await createClient();
   const events = await getEvents(supabase, city.slug, weekDates);
 

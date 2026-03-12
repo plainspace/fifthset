@@ -257,6 +257,53 @@ export async function getVenueEvents(
   return rows.map((e) => mapEventRow(e, ""));
 }
 
+export async function getArtistBySlug(
+  supabase: SupabaseClient,
+  artistSlug: string
+): Promise<{ id: string; name: string; slug: string; website?: string; photo_url?: string } | null> {
+  const { data, error } = await supabase
+    .from("artists")
+    .select("*")
+    .eq("slug", artistSlug)
+    .single();
+
+  if (error || !data) return null;
+  return {
+    id: data.id,
+    name: data.name,
+    slug: data.slug,
+    website: data.website || undefined,
+    photo_url: data.photo_url || undefined,
+  };
+}
+
+export async function getArtistEvents(
+  supabase: SupabaseClient,
+  artistId: string,
+  citySlug: string
+): Promise<Event[]> {
+  const today = new Date().toISOString().split("T")[0];
+  const { data, error } = await supabase
+    .from("events")
+    .select(`
+      *,
+      venues!inner ( *, cities!inner ( slug ) ),
+      artists ( * )
+    `)
+    .eq("artist_id", artistId)
+    .eq("venues.cities.slug", citySlug)
+    .gte("date", today)
+    .order("date")
+    .order("start_time")
+    .limit(50);
+
+  if (error) throw error;
+  if (!data) return [];
+
+  const rows = data as unknown as EventRow[];
+  return rows.map((e) => mapEventRow(e, citySlug));
+}
+
 // User: toggle favorite venue
 export async function toggleFavorite(
   supabase: SupabaseClient,

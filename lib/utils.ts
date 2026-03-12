@@ -83,6 +83,25 @@ export function slugify(text: string): string {
     .trim();
 }
 
+export function getLocalDate(timezone: string, offsetDays = 0): string {
+  const now = new Date();
+  const formatter = new Intl.DateTimeFormat("en-CA", {
+    timeZone: timezone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+  if (offsetDays === 0) return formatter.format(now);
+  const adjusted = new Date(now);
+  adjusted.setDate(adjusted.getDate() + offsetDays);
+  return formatter.format(adjusted);
+}
+
+export function getLocalDay(timezone: string, offsetDays = 0): number {
+  const dateStr = getLocalDate(timezone, offsetDays);
+  return new Date(dateStr + "T12:00:00").getDay();
+}
+
 export function cn(...classes: (string | false | null | undefined)[]): string {
   return classes.filter(Boolean).join(" ");
 }

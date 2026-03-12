@@ -75,6 +75,7 @@ export default function MapPage() {
   const [scope, setScope] = useState<DateScope>("tonight");
   const [venues, setVenues] = useState<Venue[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const supabase = useMemo(() => createClient(), []);
   const scopeDates = useMemo(() => getDatesForScope(scope), [scope]);
@@ -83,9 +84,11 @@ export default function MapPage() {
   useEffect(() => {
     if (!city) return;
 
+    setLoading(true);
     getVenues(supabase, city.slug)
       .then(setVenues)
-      .catch(console.error);
+      .catch(console.error)
+      .finally(() => setLoading(false));
   }, [supabase, city]);
 
   // Fetch events when scope changes
@@ -178,74 +181,86 @@ export default function MapPage() {
             <p className="text-xs uppercase tracking-wider text-text-muted mb-3">
               Venues with shows {scopeLabels[scope].toLowerCase()}
             </p>
-            {venues
-              .filter((v) => events.some((e) => e.venue_id === v.id))
-              .map((venue) => {
-                const venueEvents = events.filter(
-                  (e) => e.venue_id === venue.id
-                );
-                return (
-                  <Link
-                    key={venue.id}
-                    href={`/${city.slug}/venues/${venue.slug}`}
-                    className="block bg-surface rounded-lg p-3 card-glow"
-                  >
-                    <h3 className="font-serif text-sm text-text">
-                      {venue.name}
-                    </h3>
-                    <p className="text-xs text-text-muted mt-0.5">
-                      {venue.neighborhood}
-                    </p>
-                    <div className="mt-2 space-y-1">
-                      {venueEvents.slice(0, 3).map((e) => (
-                        <div
-                          key={e.id}
-                          className="flex items-center justify-between text-xs"
-                        >
-                          <span className="text-text-muted truncate">
-                            {e.artist.name}
-                          </span>
-                          <span className="text-text-muted font-mono ml-2 shrink-0">
-                            {formatTime(e.start_time)}
-                          </span>
-                        </div>
-                      ))}
-                      {venueEvents.length > 3 && (
-                        <p className="text-xs text-accent">
-                          +{venueEvents.length - 3} more
-                        </p>
-                      )}
-                    </div>
-                  </Link>
-                );
-              })}
-
-            {/* Venues without shows */}
-            {venues.filter(
-              (v) => !events.some((e) => e.venue_id === v.id)
-            ).length > 0 && (
+            {loading ? (
+              <div className="space-y-2">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div key={i} className="bg-surface rounded-lg p-3 animate-pulse">
+                    <div className="h-4 bg-surface-hover rounded w-3/4 mb-2" />
+                    <div className="h-3 bg-surface-hover rounded w-1/2" />
+                  </div>
+                ))}
+              </div>
+            ) : (
               <>
-                <p className="text-xs uppercase tracking-wider text-text-muted mt-6 mb-3">
-                  Other venues
-                </p>
                 {venues
-                  .filter(
-                    (v) => !events.some((e) => e.venue_id === v.id)
-                  )
-                  .map((venue) => (
-                    <Link
-                      key={venue.id}
-                      href={`/${city.slug}/venues/${venue.slug}`}
-                      className="block bg-surface/50 rounded-lg p-3 card-glow"
-                    >
-                      <h3 className="font-serif text-sm text-text-muted">
-                        {venue.name}
-                      </h3>
-                      <p className="text-xs text-text-muted/60 mt-0.5">
-                        {venue.neighborhood}
-                      </p>
-                    </Link>
-                  ))}
+                  .filter((v) => events.some((e) => e.venue_id === v.id))
+                  .map((venue) => {
+                    const venueEvents = events.filter(
+                      (e) => e.venue_id === venue.id
+                    );
+                    return (
+                      <Link
+                        key={venue.id}
+                        href={`/${city.slug}/venues/${venue.slug}`}
+                        className="block bg-surface rounded-lg p-3 card-glow"
+                      >
+                        <h3 className="font-serif text-sm text-text">
+                          {venue.name}
+                        </h3>
+                        <p className="text-xs text-text-muted mt-0.5">
+                          {venue.neighborhood}
+                        </p>
+                        <div className="mt-2 space-y-1">
+                          {venueEvents.slice(0, 3).map((e) => (
+                            <div
+                              key={e.id}
+                              className="flex items-center justify-between text-xs"
+                            >
+                              <span className="text-text-muted truncate">
+                                {e.artist.name}
+                              </span>
+                              <span className="text-text-muted font-mono ml-2 shrink-0">
+                                {formatTime(e.start_time)}
+                              </span>
+                            </div>
+                          ))}
+                          {venueEvents.length > 3 && (
+                            <p className="text-xs text-accent">
+                              +{venueEvents.length - 3} more
+                            </p>
+                          )}
+                        </div>
+                      </Link>
+                    );
+                  })}
+
+                {venues.filter(
+                  (v) => !events.some((e) => e.venue_id === v.id)
+                ).length > 0 && (
+                  <>
+                    <p className="text-xs uppercase tracking-wider text-text-muted mt-6 mb-3">
+                      Other venues
+                    </p>
+                    {venues
+                      .filter(
+                        (v) => !events.some((e) => e.venue_id === v.id)
+                      )
+                      .map((venue) => (
+                        <Link
+                          key={venue.id}
+                          href={`/${city.slug}/venues/${venue.slug}`}
+                          className="block bg-surface/50 rounded-lg p-3 card-glow"
+                        >
+                          <h3 className="font-serif text-sm text-text-muted">
+                            {venue.name}
+                          </h3>
+                          <p className="text-xs text-text-muted/60 mt-0.5">
+                            {venue.neighborhood}
+                          </p>
+                        </Link>
+                      ))}
+                  </>
+                )}
               </>
             )}
           </div>

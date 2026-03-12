@@ -32,7 +32,9 @@ export default async function CityLayout({
     <>
       <Nav />
       <main className="pt-16 min-h-screen">
-        {children}
+        <div className="animate-fade-in">
+          {children}
+        </div>
       </main>
       <Footer />
     </>

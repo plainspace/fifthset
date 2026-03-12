@@ -16,7 +16,7 @@ export default function EventCard({ event, citySlug }: EventCardProps) {
   return (
     <div
       className={cn(
-        "group relative bg-surface rounded-lg p-5 card-glow transition-all",
+        "group relative bg-surface rounded-lg p-5 card-glow card-enter transition-all",
         (isFeatured || isBoosted) && "featured-border",
       )}
     >

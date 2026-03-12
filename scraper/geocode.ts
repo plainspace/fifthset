@@ -43,8 +43,10 @@ async function queryNominatim(query: string): Promise<NominatimResult | null> {
 
 // Strip embedded addresses from venue names like "Arturo's 106 W Houston St"
 function cleanVenueName(name: string): string {
-  // Remove trailing address-like patterns (number + street)
   return name
+    .replace(/\s*\(.*?\)\s*/g, "")
+    .replace(/\s+at\s+.+$/i, "")
+    .replace(/\s+&\s+.+$/i, "")
     .replace(/\s+\d+\s+(W|E|N|S|West|East|North|South)\s+.+$/i, "")
     .replace(/\s+\d+\s+(Broadway|Ave|St|Street|Avenue|Blvd|Road|Rd|Place|Pl|Dr|Drive|Way|Ln|Lane)\b.*/i, "")
     .replace(/\s*[-–,]\s*\d+.*$/, "")
@@ -81,6 +83,29 @@ async function geocodeVenue(
     const cleaned = cleanVenueName(name);
     await sleep(1100);
     result = await queryNominatim(`${cleaned} bar, Manhattan, New York`);
+  }
+
+  if (!result) {
+    const cleaned = cleanVenueName(name);
+    const borough = region || "";
+    if (borough) {
+      await sleep(1100);
+      result = await queryNominatim(`${cleaned}, ${borough}, New York`);
+    }
+  }
+
+  if (!result) {
+    const cleaned = cleanVenueName(name);
+    await sleep(1100);
+    result = await queryNominatim(`${cleaned} jazz, New York City`);
+  }
+
+  if (!result) {
+    const firstName = cleanVenueName(name).split(/\s+/)[0];
+    if (firstName.length > 3) {
+      await sleep(1100);
+      result = await queryNominatim(`${firstName} jazz club, New York City`);
+    }
   }
 
   if (!result) return null;

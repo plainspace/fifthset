@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { getCityBySlug, getCitySlugs } from "@/lib/cities";
 import { createClient } from "@/lib/supabase/server";
 import { getEvents } from "@/lib/supabase/queries";
-import { formatDateFull } from "@/lib/utils";
+import { formatDateFull, getLocalDate } from "@/lib/utils";
 import ListingsView from "@/components/ListingsView";
 
 export function generateStaticParams() {
@@ -14,7 +14,7 @@ export default async function CityPage({ params }: { params: Promise<{ city: str
   const city = getCityBySlug(citySlug);
   if (!city) notFound();
 
-  const today = new Date().toISOString().split("T")[0];
+  const today = getLocalDate(city.timezone);
   const supabase = await createClient();
   const events = await getEvents(supabase, city.slug, [today]);
 

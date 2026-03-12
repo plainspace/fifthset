@@ -2,22 +2,19 @@ import { notFound } from "next/navigation";
 import { getCityBySlug, getCitySlugs } from "@/lib/cities";
 import { createClient } from "@/lib/supabase/server";
 import { getEvents } from "@/lib/supabase/queries";
-import { formatDateFull } from "@/lib/utils";
+import { formatDateFull, getLocalDate, getLocalDay } from "@/lib/utils";
 import GroupedListingsView from "@/components/GroupedListingsView";
 
 export function generateStaticParams() {
   return getCitySlugs().map((city) => ({ city }));
 }
 
-function getWeekendDates(): string[] {
-  const today = new Date();
+function getWeekendDates(timezone: string): string[] {
   const dates: string[] = [];
   for (let i = 0; i < 7; i++) {
-    const d = new Date(today);
-    d.setDate(today.getDate() + i);
-    const dDay = d.getDay();
-    if (dDay === 5 || dDay === 6 || dDay === 0) {
-      dates.push(d.toISOString().split("T")[0]);
+    const day = getLocalDay(timezone, i);
+    if (day === 5 || day === 6 || day === 0) {
+      dates.push(getLocalDate(timezone, i));
     }
   }
   return dates;
@@ -28,7 +25,7 @@ export default async function WeekendPage({ params }: { params: Promise<{ city: 
   const city = getCityBySlug(citySlug);
   if (!city) notFound();
 
-  const weekendDates = getWeekendDates();
+  const weekendDates = getWeekendDates(city.timezone);
   const supabase = await createClient();
   const events = await getEvents(supabase, city.slug, weekendDates);
 

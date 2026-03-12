@@ -125,6 +125,15 @@ The scraper runs daily at 6am ET via GitHub Actions:
 3. Upserts to Supabase (deduplicates by name/date)
 4. Auto-geocodes new venues via Nominatim (7-strategy fallback)
 
+## Email Addresses
+
+| Address | Where | Purpose |
+|---------|-------|---------|
+| `hello@fifthset.live` | About page | General contact |
+| `venues@fifthset.live` | For Venues page | Sponsor inquiries |
+
+Both need to be set up as forwards or inboxes.
+
 ## License
 
 Private.

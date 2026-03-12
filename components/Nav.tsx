@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
-import { MapPin, Calendar, Menu, X, ChevronDown } from "lucide-react";
+import { MapPin, Menu, X, ChevronDown } from "lucide-react";
 import { cities } from "@/lib/cities";
 import { cn } from "@/lib/utils";
 

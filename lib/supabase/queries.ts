@@ -1,5 +1,5 @@
 import { SupabaseClient } from "@supabase/supabase-js";
-import { City, Region, Venue, Artist, Event } from "@/lib/types";
+import { City, Venue, Event } from "@/lib/types";
 
 // Types matching Supabase row shapes
 interface DbCity {
@@ -42,7 +42,8 @@ interface DbArtist {
   photo_url: string | null;
 }
 
-interface DbEvent {
+// Supabase query results with joined relations
+interface EventRow {
   id: string;
   venue_id: string;
   artist_id: string | null;
@@ -54,6 +55,69 @@ interface DbEvent {
   is_boosted: boolean;
   venues: DbVenue;
   artists: DbArtist | null;
+}
+
+interface VenueRow extends DbVenue {
+  cities: { slug: string };
+  regions: { slug: string; name: string } | null;
+}
+
+import { SponsorTier } from "@/lib/types";
+
+function mapEventRow(e: EventRow, citySlug: string): Event {
+  return {
+    id: e.id,
+    venue_id: e.venue_id,
+    venue: {
+      id: e.venues.id,
+      city_slug: citySlug,
+      name: e.venues.name,
+      slug: e.venues.slug,
+      address: e.venues.address || "",
+      neighborhood: e.venues.neighborhood || "",
+      region: "",
+      lat: e.venues.lat || 0,
+      lng: e.venues.lng || 0,
+      website: e.venues.website || undefined,
+      phone: e.venues.phone || undefined,
+      photo_url: e.venues.photo_url || undefined,
+      sponsor_tier: (e.venues.sponsor_tier || "free") as SponsorTier,
+    },
+    artist_id: e.artist_id || "",
+    artist: e.artists
+      ? {
+          id: e.artists.id,
+          name: e.artists.name,
+          slug: e.artists.slug,
+          website: e.artists.website || undefined,
+          photo_url: e.artists.photo_url || undefined,
+        }
+      : { id: "", name: "TBA", slug: "tba" },
+    date: e.date,
+    start_time: e.start_time?.slice(0, 5) || "00:00",
+    end_time: e.end_time?.slice(0, 5) || undefined,
+    description: e.description || undefined,
+    source_url: e.source_url || undefined,
+    is_boosted: e.is_boosted || false,
+  };
+}
+
+function mapVenueRow(v: VenueRow, citySlug: string): Venue {
+  return {
+    id: v.id,
+    city_slug: citySlug,
+    name: v.name,
+    slug: v.slug,
+    address: v.address || "",
+    neighborhood: v.neighborhood || "",
+    region: v.regions?.slug || "",
+    lat: v.lat || 0,
+    lng: v.lng || 0,
+    website: v.website || undefined,
+    phone: v.phone || undefined,
+    photo_url: v.photo_url || undefined,
+    sponsor_tier: (v.sponsor_tier || "free") as SponsorTier,
+  };
 }
 
 // Fetch all cities with their regions
@@ -114,43 +178,10 @@ export async function getEvents(
   if (error) throw error;
   if (!data) return [];
 
-  return data
-    .filter((e: any) => dates.includes(e.date))
-    .map((e: any) => ({
-      id: e.id,
-      venue_id: e.venue_id,
-      venue: {
-        id: e.venues.id,
-        city_slug: citySlug,
-        name: e.venues.name,
-        slug: e.venues.slug,
-        address: e.venues.address || "",
-        neighborhood: e.venues.neighborhood || "",
-        region: "",
-        lat: e.venues.lat || 0,
-        lng: e.venues.lng || 0,
-        website: e.venues.website || undefined,
-        phone: e.venues.phone || undefined,
-        photo_url: e.venues.photo_url || undefined,
-        sponsor_tier: e.venues.sponsor_tier as any,
-      },
-      artist_id: e.artist_id || "",
-      artist: e.artists
-        ? {
-            id: e.artists.id,
-            name: e.artists.name,
-            slug: e.artists.slug,
-            website: e.artists.website || undefined,
-            photo_url: e.artists.photo_url || undefined,
-          }
-        : { id: "", name: "TBA", slug: "tba" },
-      date: e.date,
-      start_time: e.start_time?.slice(0, 5) || "00:00",
-      end_time: e.end_time?.slice(0, 5) || undefined,
-      description: e.description || undefined,
-      source_url: e.source_url || undefined,
-      is_boosted: e.is_boosted || false,
-    }));
+  const rows = data as unknown as EventRow[];
+  return rows
+    .filter((e) => dates.includes(e.date))
+    .map((e) => mapEventRow(e, citySlug));
 }
 
 // Fetch all venues for a city
@@ -172,21 +203,8 @@ export async function getVenues(
   if (error) throw error;
   if (!data) return [];
 
-  return data.map((v: any) => ({
-    id: v.id,
-    city_slug: citySlug,
-    name: v.name,
-    slug: v.slug,
-    address: v.address || "",
-    neighborhood: v.neighborhood || "",
-    region: v.regions?.slug || "",
-    lat: v.lat || 0,
-    lng: v.lng || 0,
-    website: v.website || undefined,
-    phone: v.phone || undefined,
-    photo_url: v.photo_url || undefined,
-    sponsor_tier: v.sponsor_tier as any,
-  }));
+  const rows = data as unknown as VenueRow[];
+  return rows.map((v) => mapVenueRow(v, citySlug));
 }
 
 // Fetch a single venue by slug
@@ -208,21 +226,8 @@ export async function getVenueBySlug(
 
   if (error || !data) return null;
 
-  return {
-    id: data.id,
-    city_slug: citySlug,
-    name: data.name,
-    slug: data.slug,
-    address: data.address || "",
-    neighborhood: data.neighborhood || "",
-    region: (data as any).regions?.slug || "",
-    lat: data.lat || 0,
-    lng: data.lng || 0,
-    website: data.website || undefined,
-    phone: data.phone || undefined,
-    photo_url: data.photo_url || undefined,
-    sponsor_tier: data.sponsor_tier as any,
-  };
+  const row = data as unknown as VenueRow;
+  return mapVenueRow(row, citySlug);
 }
 
 // Fetch events for a specific venue
@@ -248,36 +253,8 @@ export async function getVenueEvents(
   if (error) throw error;
   if (!data) return [];
 
-  return data.map((e: any) => ({
-    id: e.id,
-    venue_id: e.venue_id,
-    venue: {
-      id: e.venues.id,
-      city_slug: "",
-      name: e.venues.name,
-      slug: e.venues.slug,
-      address: e.venues.address || "",
-      neighborhood: e.venues.neighborhood || "",
-      region: "",
-      lat: e.venues.lat || 0,
-      lng: e.venues.lng || 0,
-      website: e.venues.website || undefined,
-      sponsor_tier: e.venues.sponsor_tier as any,
-    },
-    artist_id: e.artist_id || "",
-    artist: e.artists
-      ? {
-          id: e.artists.id,
-          name: e.artists.name,
-          slug: e.artists.slug,
-          website: e.artists.website || undefined,
-        }
-      : { id: "", name: "TBA", slug: "tba" },
-    date: e.date,
-    start_time: e.start_time?.slice(0, 5) || "00:00",
-    end_time: e.end_time?.slice(0, 5) || undefined,
-    is_boosted: e.is_boosted || false,
-  }));
+  const rows = data as unknown as EventRow[];
+  return rows.map((e) => mapEventRow(e, ""));
 }
 
 // User: toggle favorite venue
@@ -314,7 +291,7 @@ export async function getFavorites(
     .select("venue_id")
     .eq("user_id", userId);
 
-  return (data || []).map((f: any) => f.venue_id);
+  return (data || []).map((f: { venue_id: string }) => f.venue_id);
 }
 
 // User: save preferences

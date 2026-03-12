@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { getCityBySlug } from "@/lib/cities";
@@ -86,7 +86,7 @@ export default function MapPage() {
     getVenues(supabase, city.slug)
       .then(setVenues)
       .catch(console.error);
-  }, [supabase, city?.slug]);
+  }, [supabase, city]);
 
   // Fetch events when scope changes
   useEffect(() => {
@@ -95,7 +95,7 @@ export default function MapPage() {
     getEvents(supabase, city.slug, scopeDates)
       .then(setEvents)
       .catch(console.error);
-  }, [supabase, city?.slug, scopeDates]);
+  }, [supabase, city, scopeDates]);
 
   if (!city) return null;
 

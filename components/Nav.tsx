@@ -3,11 +3,19 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
-import { MapPin, Menu, X, ChevronDown, Music } from "lucide-react";
+import { MapPin, Menu, X, ChevronDown, Music, Search as SearchIcon } from "lucide-react";
 import { cities } from "@/lib/cities";
 import { cn } from "@/lib/utils";
 import Search from "@/components/Search";
 import UserMenu from "@/components/UserMenu";
+
+const dateFiltersConfig = [
+  { label: "Tnght", short: "Tnght", href: "" },
+  { label: "Tmrrw", short: "Tmrrw", href: "/tomorrow" },
+  { label: "Ths Wknd", short: "Ths Wknd", href: "/this-weekend" },
+  { label: "Ths Wk", short: "Ths Wk", href: "/this-week" },
+  { label: "Nxt Wk", short: "Nxt Wk", href: "/next-week" },
+];
 
 export default function Nav() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -16,27 +24,24 @@ export default function Nav() {
   const pathname = usePathname();
   const currentCity = cities.find((c) => c.slug === params.city) || cities[0];
 
-  const dateFilters = [
-    { label: "Tonight", href: `/${currentCity.slug}` },
-    { label: "Tomorrow", href: `/${currentCity.slug}/tomorrow` },
-    { label: "This Weekend", href: `/${currentCity.slug}/this-weekend` },
-    { label: "This Week", href: `/${currentCity.slug}/this-week` },
-    { label: "Next Week", href: `/${currentCity.slug}/next-week` },
-  ];
+  const dateFilters = dateFiltersConfig.map((f) => ({
+    ...f,
+    href: f.href ? `/${currentCity.slug}${f.href}` : `/${currentCity.slug}`,
+  }));
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-40 bg-bg/90 backdrop-blur-md border-b border-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link href={`/${currentCity.slug}`} className="flex items-center gap-2">
+          <Link href={`/${currentCity.slug}`} className="flex items-center gap-2 shrink-0">
             <span className="font-serif text-xl text-accent tracking-tight">
               Fifth Set
             </span>
           </Link>
 
           {/* Desktop nav */}
-          <div className="hidden md:flex items-center gap-6">
+          <div className="hidden md:flex items-center gap-2 lg:gap-5 ml-auto">
             {/* City selector */}
             <div className="relative">
               <button
@@ -44,7 +49,8 @@ export default function Nav() {
                 className="flex items-center gap-1.5 text-sm text-text-muted hover:text-text transition-colors"
               >
                 <MapPin className="w-4 h-4" />
-                {currentCity.name}
+                <span className="hidden lg:inline">{currentCity.name}</span>
+                <span className="lg:hidden">{currentCity.slug.toUpperCase()}</span>
                 <ChevronDown className={cn("w-3 h-3 transition-transform", cityOpen && "rotate-180")} />
               </button>
               {cityOpen && (
@@ -72,19 +78,20 @@ export default function Nav() {
             </div>
 
             {/* Date filters */}
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-0.5 lg:gap-1">
               {dateFilters.map((filter) => (
                 <Link
                   key={filter.label}
                   href={filter.href}
                   className={cn(
-                    "px-3 py-1.5 text-sm rounded-full transition-colors",
+                    "px-2 lg:px-3 py-1.5 text-xs lg:text-sm rounded-full transition-colors whitespace-nowrap",
                     pathname === filter.href
                       ? "bg-accent text-bg font-medium"
                       : "text-text-muted hover:text-text hover:bg-surface-hover"
                   )}
                 >
-                  {filter.label}
+                  <span className="hidden lg:inline">{filter.label}</span>
+                  <span className="lg:hidden">{filter.short}</span>
                 </Link>
               ))}
             </div>
@@ -94,29 +101,31 @@ export default function Nav() {
             {/* Venues link */}
             <Link
               href={`/${currentCity.slug}/venues`}
+              title="Venues"
               className={cn(
-                "flex items-center gap-1.5 text-sm transition-colors",
+                "flex items-center gap-1.5 text-sm transition-colors shrink-0",
                 pathname === `/${currentCity.slug}/venues`
                   ? "text-accent"
                   : "text-text-muted hover:text-text"
               )}
             >
               <Music className="w-4 h-4" />
-              Venues
+              <span className="hidden lg:inline">Venues</span>
             </Link>
 
             {/* Map link */}
             <Link
               href={`/${currentCity.slug}/map`}
+              title="Map"
               className={cn(
-                "flex items-center gap-1.5 text-sm transition-colors",
+                "flex items-center gap-1.5 text-sm transition-colors shrink-0",
                 pathname === `/${currentCity.slug}/map`
                   ? "text-accent"
                   : "text-text-muted hover:text-text"
               )}
             >
               <MapPin className="w-4 h-4" />
-              Map
+              <span className="hidden lg:inline">Map</span>
             </Link>
 
             <UserMenu />

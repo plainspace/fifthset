@@ -40,9 +40,12 @@ export default function EventCard({ event, citySlug }: EventCardProps) {
       )}
 
       {/* Artist */}
-      <h3 className="font-serif text-xl text-text group-hover:text-accent transition-colors pr-20">
+      <Link
+        href={`/${citySlug}/artists/${event.artist.slug}`}
+        className="font-serif text-xl text-text hover:text-accent transition-colors pr-20 block"
+      >
         {event.artist.name}
-      </h3>
+      </Link>
 
       {/* Venue */}
       <Link

@@ -1,11 +1,12 @@
+import { Metadata } from "next";
 import Link from "next/link";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 
-export const metadata = {
-  title: "About | Fifth Set",
+export const metadata: Metadata = {
+  title: "About",
   description:
-    "Fifth Set is a modern jazz discovery platform. Find live jazz tonight in NYC, Chicago, New Orleans, LA, and San Francisco.",
+    "Fifth Set is a modern jazz discovery platform. Find live jazz tonight in NYC and beyond.",
 };
 
 export default function AboutPage() {
@@ -13,74 +14,65 @@ export default function AboutPage() {
     <>
       <Nav />
       <main className="pt-16 min-h-screen">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-16">
-          {/* Hero */}
-          <h1 className="font-serif text-3xl sm:text-4xl text-text leading-snug text-balance">
-            Every city has a jazz scene. Most of them are invisible online.
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 py-16">
+          <h1 className="font-serif text-3xl sm:text-4xl text-text mb-8">
+            About <span className="text-accent">Fifth Set</span>
           </h1>
 
-          <div className="mt-12 space-y-6 text-text-muted leading-relaxed">
+          <div className="space-y-6 text-text-muted leading-relaxed">
             <p>
-              Great jazz is happening every night... in basements, behind unmarked
-              doors, at venues that have been swinging since your grandparents were
-              dating. But finding it? That means digging through websites that
-              haven&apos;t been updated since 2005, scrolling through dense
-              spreadsheets, or just knowing someone who knows.
+              Jazz is alive every night in New York City. But finding out where
+              and when has always been harder than it should be.
             </p>
 
-            <p>Fifth Set exists because jazz deserves better than that.</p>
-
-            <p className="text-text">
-              We pull together every live jazz listing we can find... every venue,
-              every set, every night. Then we make it easy to search, filter, and
-              explore. See what&apos;s happening tonight. Browse by neighborhood.
-              Open the map and find something close. It takes ten seconds, not ten
-              minutes.
+            <p>
+              Fifth Set pulls together jazz listings from across the city into
+              one clean, filterable, mappable view. No more scrolling through
+              dense tables or checking five different websites. Just open the
+              app, pick your neighborhood and time, and go hear some music.
             </p>
 
-            <h2 className="font-serif text-2xl text-text pt-6">
-              Free for fans. Always.
-            </h2>
-
             <p>
-              Fifth Set is free to use. No account required. No paywalls. If you
-              want to save your favorite venues and get alerts, you can sign up...
-              but the listings are always open.
+              The name comes from the tradition of late-night jam sessions... the
+              fifth set, after the regular show ends, when the real playing
+              happens. That spirit of discovery is what we are building for.
             </p>
 
-            <h2 className="font-serif text-2xl text-text pt-6">
-              Built for venues too.
-            </h2>
+            <h2 className="font-serif text-xl text-text pt-4">How it works</h2>
 
             <p>
-              If you run a jazz venue, we want you on Fifth Set. Every venue gets a
-              free listing. If you want more visibility... featured placement, a
-              spotlight on the map, priority in search results... we offer{" "}
+              We aggregate listings daily from trusted sources, normalize the
+              data, geocode venues, and present it all in a modern interface.
+              Filter by borough, time of day, or just browse the map.
+            </p>
+
+            <h2 className="font-serif text-xl text-text pt-4">For venues</h2>
+
+            <p>
+              If you run a jazz venue and want to make sure your listings are
+              accurate, or if you are interested in featured placement, check out
+              our{" "}
               <Link
                 href="/for-venues"
-                className="text-accent hover:text-accent-hover transition-colors underline underline-offset-4"
+                className="text-accent hover:text-accent-hover transition-colors underline underline-offset-2"
               >
-                sponsorship tiers
+                venue partnerships
               </Link>{" "}
-              that help you reach the people who are actively looking for live jazz
-              tonight.
+              page.
             </p>
 
-            <h2 className="font-serif text-2xl text-text pt-6">Where we are.</h2>
+            <h2 className="font-serif text-xl text-text pt-4">Built by</h2>
 
             <p>
-              We launched in New York City and are expanding to Chicago, New
-              Orleans, Los Angeles, and San Francisco. Every jazz city deserves a
-              Fifth Set.
+              Fifth Set is an independent project built with care for the NYC
+              jazz community. Got feedback or a venue to add? Reach out at{" "}
+              <a
+                href="mailto:hello@fifthset.live"
+                className="text-accent hover:text-accent-hover transition-colors underline underline-offset-2"
+              >
+                hello@fifthset.live
+              </a>
             </p>
-
-            <div className="pt-8 border-t border-border mt-8">
-              <p className="text-sm text-text-muted/60">
-                Built with love for the music. If you have feedback, venue
-                suggestions, or just want to say hi... we&apos;d love to hear from
-                you.
-              </p>
-            </div>
           </div>
         </div>
       </main>

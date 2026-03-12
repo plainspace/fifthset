@@ -1,5 +1,7 @@
 import { cities } from "@/lib/cities";
 
+export const revalidate = 300;
+
 export default async function sitemap() {
   const baseUrl = "https://fifthset.live";
 

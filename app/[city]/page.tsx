@@ -1,13 +1,48 @@
+import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getCityBySlug, getCitySlugs } from "@/lib/cities";
 import { createClient } from "@/lib/supabase/server";
 import { getEvents } from "@/lib/supabase/queries";
 import { formatDateFull, getLocalDate } from "@/lib/utils";
+import { eventSchema, breadcrumbSchema } from "@/lib/jsonld";
+import JsonLd from "@/components/JsonLd";
 import ListingsView from "@/components/ListingsView";
 
 export function generateStaticParams() {
   return getCitySlugs().map((city) => ({ city }));
 }
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ city: string }>;
+}): Promise<Metadata> {
+  const { city: citySlug } = await params;
+  const city = getCityBySlug(citySlug);
+  if (!city) return {};
+
+  const title = `Live Jazz in ${city.name} Tonight`;
+  const description = `Find live jazz shows tonight in ${city.name}. Browse venues, filter by neighborhood and time, and discover the best jazz in the city.`;
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      images: [
+        {
+          url: `/api/og?title=${encodeURIComponent(`Live Jazz in ${city.name}`)}&subtitle=Tonight`,
+          width: 1200,
+          height: 630,
+        },
+      ],
+    },
+    alternates: { canonical: `https://fifthset.live/${citySlug}` },
+  };
+}
+
+export const revalidate = 300;
 
 export default async function CityPage({ params }: { params: Promise<{ city: string }> }) {
   const { city: citySlug } = await params;
@@ -19,12 +54,23 @@ export default async function CityPage({ params }: { params: Promise<{ city: str
   const events = await getEvents(supabase, city.slug, [today]);
 
   return (
-    <ListingsView
-      city={city}
-      events={events}
-      heading="Live Jazz"
-      subtitle={`Tonight \u00A0/\u00A0 ${formatDateFull(today)}`}
-      showLabel="tonight"
-    />
+    <>
+      <JsonLd
+        data={breadcrumbSchema([
+          { name: "Home", url: "/" },
+          { name: city.name, url: `/${city.slug}` },
+        ])}
+      />
+      <JsonLd
+        data={events.slice(0, 20).map((e) => eventSchema(e, city.slug, e.date))}
+      />
+      <ListingsView
+        city={city}
+        events={events}
+        heading="Live Jazz"
+        subtitle={`Tonight \u00A0/\u00A0 ${formatDateFull(today)}`}
+        showLabel="tonight"
+      />
+    </>
   );
 }

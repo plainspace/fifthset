@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ExternalLink, MapPin, Phone, Star, Clock } from "lucide-react";
@@ -5,6 +6,44 @@ import { getCityBySlug } from "@/lib/cities";
 import { createClient } from "@/lib/supabase/server";
 import { getVenueBySlug, getVenueEvents } from "@/lib/supabase/queries";
 import { formatTime, getDateLabel, cn } from "@/lib/utils";
+import { venueSchema, breadcrumbSchema } from "@/lib/jsonld";
+import JsonLd from "@/components/JsonLd";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ city: string; slug: string }>;
+}): Promise<Metadata> {
+  const { city: citySlug, slug } = await params;
+  const city = getCityBySlug(citySlug);
+  const supabase = await createClient();
+  const venue = city ? await getVenueBySlug(supabase, citySlug, slug) : null;
+  if (!venue) return {};
+
+  const title = `${venue.name} - Jazz in ${city!.name}`;
+  const description = `Upcoming jazz shows at ${venue.name}${venue.address ? `, ${venue.address}` : ""}. See tonight's lineup and upcoming events.`;
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      images: [
+        {
+          url: `/api/og?title=${encodeURIComponent(venue.name)}&subtitle=${encodeURIComponent(venue.neighborhood || city!.name)}&type=venue`,
+          width: 1200,
+          height: 630,
+        },
+      ],
+    },
+    alternates: {
+      canonical: `https://fifthset.live/${citySlug}/venues/${slug}`,
+    },
+  };
+}
+
+export const revalidate = 300;
 
 export default async function VenueDetailPage({
   params,
@@ -31,6 +70,15 @@ export default async function VenueDetailPage({
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
+      <JsonLd data={venueSchema(venue, citySlug)} />
+      <JsonLd
+        data={breadcrumbSchema([
+          { name: "Home", url: "/" },
+          { name: city.name, url: `/${citySlug}` },
+          { name: "Venues", url: `/${citySlug}/venues` },
+          { name: venue.name, url: `/${citySlug}/venues/${venue.slug}` },
+        ])}
+      />
       {/* Venue header */}
       <div className={cn("bg-surface rounded-lg p-6 sm:p-8", isFeatured && "featured-border")}>
         <div className="flex items-start justify-between">

@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getCityBySlug, getCitySlugs } from "@/lib/cities";
 import { createClient } from "@/lib/supabase/server";
@@ -19,6 +20,38 @@ function getNextWeekDates(timezone: string): string[] {
   }
   return dates;
 }
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ city: string }>;
+}): Promise<Metadata> {
+  const { city: citySlug } = await params;
+  const city = getCityBySlug(citySlug);
+  if (!city) return {};
+
+  const title = `Jazz Next Week in ${city.name}`;
+  const description = `Find live jazz shows next week in ${city.name}. Plan ahead with venue listings and showtimes.`;
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      images: [
+        {
+          url: `/api/og?title=${encodeURIComponent(`Jazz in ${city.name}`)}&subtitle=Next%20Week`,
+          width: 1200,
+          height: 630,
+        },
+      ],
+    },
+    alternates: { canonical: `https://fifthset.live/${citySlug}/next-week` },
+  };
+}
+
+export const revalidate = 300;
 
 export default async function NextWeekPage({ params }: { params: Promise<{ city: string }> }) {
   const { city: citySlug } = await params;

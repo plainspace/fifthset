@@ -140,7 +140,7 @@ body {
 
 /* Date picker styling */
 input[type="date"]::-webkit-calendar-picker-indicator {
-  filter: invert(0.7) sepia(0.3) hue-rotate(350deg);
+  filter: invert(0.85) sepia(0.15) hue-rotate(350deg) brightness(1.2);
   cursor: pointer;
 }
 

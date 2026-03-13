@@ -57,6 +57,13 @@ async function queryNominatim(query: string): Promise<NominatimResult | null> {
   return results.length > 0 ? results[0] : null;
 }
 
+// Google Places request budget per geocode run
+const GOOGLE_PLACES_MAX_REQUESTS = parseInt(
+  process.env.GOOGLE_PLACES_MAX_REQUESTS || "50",
+  10
+);
+let googlePlacesRequestCount = 0;
+
 async function queryGooglePlaces(
   venueName: string,
   cityName: string
@@ -64,7 +71,15 @@ async function queryGooglePlaces(
   const apiKey = process.env.GOOGLE_PLACES_API_KEY;
   if (!apiKey) return null;
 
+  if (googlePlacesRequestCount >= GOOGLE_PLACES_MAX_REQUESTS) {
+    console.warn(
+      `  Google Places budget exhausted (${GOOGLE_PLACES_MAX_REQUESTS} requests). Skipping.`
+    );
+    return null;
+  }
+
   const query = `${venueName} ${cityName}`;
+  googlePlacesRequestCount++;
 
   try {
     const response = await fetch(
@@ -272,6 +287,9 @@ export async function geocodeNewVenues(supabaseUrl: string, serviceKey: string) 
   }
 
   console.log(`\nDone: ${success} geocoded, ${failed} failed/missed`);
+  if (googlePlacesRequestCount > 0) {
+    console.log(`Google Places: ${googlePlacesRequestCount}/${GOOGLE_PLACES_MAX_REQUESTS} requests used`);
+  }
 }
 
 // Run standalone: npm run geocode

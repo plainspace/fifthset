@@ -38,27 +38,27 @@ export function getDateLabel(dateStr: string): string {
   return dayNames[date.getDay()];
 }
 
-export function isLiveNow(event: Event): boolean {
-  const now = new Date();
+export function isLiveNow(event: Event, timezone = "America/New_York"): boolean {
+  const nowStr = new Date().toLocaleString("en-US", { timeZone: timezone });
+  const now = new Date(nowStr);
+
   const [startH, startM] = event.start_time.split(":").map(Number);
-  const start = new Date();
+  const eventDate = new Date(event.date + "T00:00:00");
+  const start = new Date(eventDate);
   start.setHours(startH, startM, 0, 0);
 
+  let endDate: Date;
   if (!event.end_time) {
-    // Assume 2 hour set
-    const end = new Date(start);
-    end.setHours(end.getHours() + 2);
-    return now >= start && now <= end;
+    endDate = new Date(start);
+    endDate.setHours(endDate.getHours() + 2);
+  } else {
+    const [endH, endM] = event.end_time.split(":").map(Number);
+    endDate = new Date(eventDate);
+    endDate.setHours(endH, endM, 0, 0);
+    if (endDate <= start) endDate.setDate(endDate.getDate() + 1);
   }
 
-  const [endH, endM] = event.end_time.split(":").map(Number);
-  const end = new Date();
-  end.setHours(endH, endM, 0, 0);
-
-  // Handle past-midnight end times
-  if (end <= start) end.setDate(end.getDate() + 1);
-
-  return now >= start && now <= end;
+  return now >= start && now <= endDate;
 }
 
 export function formatDateFull(dateStr: string): string {

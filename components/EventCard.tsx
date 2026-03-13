@@ -1,7 +1,9 @@
-import Link from "next/link";
-import { Clock, MapPin } from "lucide-react";
-import { Event } from "@/lib/types";
-import { formatTime, isLiveNow, cn } from "@/lib/utils";
+import Link from 'next/link';
+import { Clock, MapPin } from 'lucide-react';
+import { Event } from '@/lib/types';
+import { formatTime, cn } from '@/lib/utils';
+import { getCityBySlug } from '@/lib/cities';
+import LiveBadge from '@/components/LiveBadge';
 
 interface EventCardProps {
   event: Event;
@@ -9,40 +11,29 @@ interface EventCardProps {
 }
 
 export default function EventCard({ event, citySlug }: EventCardProps) {
-  const live = isLiveNow(event);
-  const isFeatured = event.venue.sponsor_tier === "marquee" || event.venue.sponsor_tier === "spotlight";
+  const city = getCityBySlug(citySlug);
+  const isFeatured =
+    event.venue.sponsor_tier === 'marquee' ||
+    event.venue.sponsor_tier === 'spotlight';
   const isBoosted = event.is_boosted;
 
   return (
     <div
       className={cn(
-        "group relative bg-surface rounded-lg p-5 card-glow card-enter transition-all",
-        (isFeatured || isBoosted) && "featured-border",
+        'group relative bg-surface rounded-lg p-5 card-glow card-enter transition-all',
+        (isFeatured || isBoosted) && 'featured-border',
       )}
     >
-      {/* Live badge */}
-      {live && (
-        <div className="absolute top-4 right-4 flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full bg-live animate-pulse-live" />
-          <span className="text-xs font-medium text-live uppercase tracking-wider">
-            Live Now
-          </span>
-        </div>
-      )}
-
-      {/* Featured badge */}
-      {isFeatured && !live && (
-        <div className="absolute top-4 right-4">
-          <span className="text-xs font-medium text-accent/70 uppercase tracking-wider">
-            Featured
-          </span>
-        </div>
-      )}
+      <LiveBadge
+        event={event}
+        timezone={city?.timezone ?? 'America/New_York'}
+        isFeatured={isFeatured}
+      />
 
       {/* Artist */}
       <Link
         href={`/${citySlug}/artists/${event.artist.slug}`}
-        className="font-serif text-xl text-text hover:text-accent transition-colors pr-20 block"
+        className="font-serif text-xl text-text hover:text-accent transition-colors pr-20 block text-pretty"
       >
         {event.artist.name}
       </Link>

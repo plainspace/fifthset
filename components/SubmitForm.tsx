@@ -17,7 +17,7 @@ function useVenueAutocomplete(city: string) {
   const [suggestions, setSuggestions] = useState<VenueSuggestion[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
-  const timerRef = useRef<ReturnType<typeof setTimeout>>();
+  const timerRef = useRef<ReturnType<typeof setTimeout>>(null);
 
   const search = useCallback(
     (value: string) => {

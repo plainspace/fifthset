@@ -7,6 +7,9 @@ export const metadata: Metadata = {
   title: "About",
   description:
     "Fifth Set is a modern jazz discovery platform. Find live jazz tonight in NYC and beyond.",
+  alternates: {
+    canonical: "https://fifthset.live/about",
+  },
 };
 
 export default function AboutPage() {

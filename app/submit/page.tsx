@@ -8,6 +8,9 @@ export const metadata: Metadata = {
   description:
     "Add your show to Fifth Set. Venues and artists can submit live jazz events for free.",
   robots: { index: true, follow: true },
+  alternates: {
+    canonical: "https://fifthset.live/submit",
+  },
 };
 
 export default function SubmitPage() {

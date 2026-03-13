@@ -15,6 +15,9 @@ export const metadata: Metadata = {
   title: 'For Venues',
   description:
     'Claim a week as the Featured Venue on Fifth Set. Top placement, highlighted cards, and a banner across all city pages. From $99/week.',
+  alternates: {
+    canonical: 'https://fifthset.live/for-venues',
+  },
 };
 
 const perks = [

@@ -105,7 +105,7 @@ export default function ForVenuesPage() {
               {
                 step: '01',
                 title: 'Your venue is already listed',
-                body: 'We scrape public calendars daily. If you host live jazz, your shows are already on Fifth Set... accurate and up to date.',
+                body: 'We pull from public calendars daily. If you host live jazz, your shows are already on Fifth Set... accurate and up to date.',
               },
               {
                 step: '02',

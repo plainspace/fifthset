@@ -41,8 +41,8 @@ export default function AboutPage() {
             <h2 className="font-serif text-xl text-text pt-4">How it works</h2>
 
             <p>
-              We aggregate listings daily from trusted sources, normalize the
-              data, geocode venues, and present it all in a modern interface.
+              We pull listings daily from trusted sources, clean up the
+              data, and present it all in a modern interface.
               Filter by borough, time of day, or just browse the map.
             </p>
 

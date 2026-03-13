@@ -35,7 +35,7 @@ export default function SubmitPage() {
             </h2>
             <div className="space-y-3 text-sm text-text-muted">
               <p className="text-pretty">
-                Fifth Set aggregates jazz listings from public sources
+                Fifth Set pulls jazz listings from public sources
                 including{" "}
                 <a
                   href="https://jazz-nyc.com/"
@@ -54,7 +54,7 @@ export default function SubmitPage() {
                 >
                   WWOZ Livewire
                 </a>
-                . Our scrapers run every morning and update automatically.
+                . Listings update every morning automatically.
               </p>
               <p className="text-pretty">
                 If your venue or event isn&apos;t showing up, it might not be

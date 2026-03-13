@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Calendar, Clock, MapPin } from 'lucide-react';
+import { Calendar, Clock, MapPin, ExternalLink } from 'lucide-react';
 import { Event } from '@/lib/types';
 import { formatTime, formatDateShort, cn } from '@/lib/utils';
 import { getCityBySlug } from '@/lib/cities';
@@ -74,7 +74,20 @@ export default function EventCard({ event, citySlug, starred }: EventCardProps) 
             {event.venue.neighborhood}
           </span>
         </div>
-        <StarButton type="event" id={event.id} initialStarred={starred} />
+        <div className="flex items-center gap-2">
+          {event.venue.website && (
+            <a
+              href={`${event.venue.website}${event.venue.website.includes('?') ? '&' : '?'}utm_source=fifthset&utm_medium=listing`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-text-muted hover:text-accent transition-colors"
+              aria-label="Tickets"
+            >
+              <ExternalLink className="w-4 h-4" />
+            </a>
+          )}
+          <StarButton type="event" id={event.id} initialStarred={starred} />
+        </div>
       </div>
     </div>
   );

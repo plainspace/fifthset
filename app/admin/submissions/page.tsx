@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 
 type Status = "pending" | "approved" | "rejected";
@@ -43,6 +43,14 @@ const STATUS_BADGE: Record<Status, string> = {
 };
 
 export default function AdminSubmissionsPage() {
+  return (
+    <Suspense>
+      <AdminSubmissionsInner />
+    </Suspense>
+  );
+}
+
+function AdminSubmissionsInner() {
   const searchParams = useSearchParams();
   const urlKey = searchParams.get("key");
 

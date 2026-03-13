@@ -132,8 +132,70 @@ The scraper runs daily at 6am ET via GitHub Actions:
 |---------|-------|---------|
 | `hello@fifthset.live` | About page | General contact |
 | `venues@fifthset.live` | For Venues page | Sponsor inquiries |
+| `*@fifthset.live` | Catch-all | Forwards to personal email |
 
-Both need to be set up as forwards or inboxes.
+All addresses route through Cloudflare Email Routing to Jared's personal inbox. Catch-all is enabled.
+
+## Listening Match (Planned)
+
+Connect your Spotify or Apple Music account, and Fifth Set will match your listening history against artists in the database... then notify you when one of those artists has an upcoming show.
+
+### How It Works
+
+1. **Daily cron** syncs listening data from connected accounts (top artists, recently played)
+2. **Matching engine** compares external artists against the venue/artist database
+3. **Notifications** fire when a matched artist has an event (email via Resend, push in Phase 3)
+
+### Spotify Integration
+
+- OAuth with scopes: `user-read-recently-played`, `user-top-read`
+- Endpoints: `/v1/me/top/artists`, `/v1/me/player/recently-played`
+- Refresh token stored in `user_music_connections` table
+- Daily sync pulls top and recently played artists
+
+### Apple Music Integration
+
+- MusicKit JS for browser auth
+- Apple Music API: `/v1/me/library/artists`, `/v1/me/recent/played`
+- Developer token (server-side JWT) + user music token
+- Same sync pattern as Spotify
+
+### Data Model (new tables)
+
+```
+user_music_connections
+  id, user_id, provider (spotify | apple_music),
+  access_token, refresh_token, token_expires_at,
+  last_synced_at, created_at
+
+user_listened_artists
+  id, user_id, provider, external_artist_name,
+  external_artist_id, artist_id (nullable FK to artists),
+  match_confidence, last_seen_at
+
+artist_aliases
+  id, artist_id, alias (for fuzzy matching)
+```
+
+### Matching Logic
+
+- Exact name match first
+- Fuzzy match via Levenshtein or trigram (`pg_trgm` extension)
+- `artist_aliases` table for known variations (e.g. "Benny Green Trio" → "Benny Green")
+- Unmatched artists flagged for manual review
+- Match confidence score stored per record
+
+### UI
+
+- **Settings page:** Connect Spotify / Connect Apple Music buttons
+- **Event cards:** "You listen to this artist" badge
+- **Notification preferences:** email digest frequency (daily, weekly, or off)
+
+### Privacy
+
+- Only artist listening data is stored... no tracks, no play counts
+- Users can disconnect anytime (deletes tokens + all listening data)
+- Clear disclosure on the connect screen about what data is accessed
 
 ## License
 

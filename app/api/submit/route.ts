@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 const CITY_LABELS: Record<string, string> = {
   nyc: "New York City",
@@ -17,11 +18,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true });
     }
 
-    const required = ["artist", "date", "time", "venue", "city", "email"];
+    const required = ["artist", "date", "time_hour", "time_minute", "time_period", "venue", "city", "email"];
     const missing = required.filter((f) => !data[f]?.trim());
     if (missing.length > 0) {
       return NextResponse.json(
         { error: `Missing required fields: ${missing.join(", ")}` },
+        { status: 400 }
+      );
+    }
+
+    const time = `${data.time_hour}:${data.time_minute} ${data.time_period}`;
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
+      return NextResponse.json(
+        { error: "Invalid email address" },
         { status: 400 }
       );
     }
@@ -38,6 +48,42 @@ export async function POST(request: NextRequest) {
     const cityLabel = CITY_LABELS[data.city] || data.city;
     const subject = `New Show Submission: ${data.artist} at ${data.venue}`;
 
+    let pendingId: string | null = null;
+    try {
+      const supabase = createAdminClient();
+      const { data: pending } = await supabase
+        .from("pending_events")
+        .insert({
+          artist: data.artist,
+          venue: data.venue,
+          date: data.date,
+          time,
+          city: data.city,
+          genre: data.genre || null,
+          venue_url: data.venue_url || null,
+          description: data.description || null,
+          submitter_email: data.email,
+          submitter_name: data.submitter_name || null,
+          submitter_role: data.role || null,
+        })
+        .select("id")
+        .single();
+      pendingId = pending?.id || null;
+    } catch (dbError) {
+      console.error("Failed to insert pending event:", dbError);
+    }
+
+    const adminKey = process.env.ADMIN_API_KEY;
+    const approvalLinks = pendingId && adminKey
+      ? `
+        <div style="margin-top: 32px; padding-top: 24px; border-top: 2px solid #e5e5e5;">
+          <p style="font-size: 14px; color: #666; margin-bottom: 12px;">Quick actions:</p>
+          <a href="https://fifthset.live/api/admin/submissions/${pendingId}?action=approve&key=${adminKey}" style="display: inline-block; padding: 10px 24px; background: #16a34a; color: #fff; text-decoration: none; border-radius: 6px; font-weight: 600; margin-right: 12px;">Approve</a>
+          <a href="https://fifthset.live/api/admin/submissions/${pendingId}?action=reject&key=${adminKey}" style="display: inline-block; padding: 10px 24px; background: #dc2626; color: #fff; text-decoration: none; border-radius: 6px; font-weight: 600; margin-right: 12px;">Reject</a>
+          <a href="https://fifthset.live/admin/submissions?key=${adminKey}" style="display: inline-block; padding: 10px 24px; background: #d97706; color: #fff; text-decoration: none; border-radius: 6px; font-weight: 600;">Review</a>
+        </div>`
+      : "";
+
     const html = `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; color: #1a1a1a;">
         <h2 style="margin-bottom: 24px; font-size: 20px;">New Show Submission</h2>
@@ -53,7 +99,7 @@ export async function POST(request: NextRequest) {
           </tr>
           <tr>
             <td style="padding: 8px 12px; border-bottom: 1px solid #e5e5e5; font-weight: 600;">Time</td>
-            <td style="padding: 8px 12px; border-bottom: 1px solid #e5e5e5;">${esc(data.time)}</td>
+            <td style="padding: 8px 12px; border-bottom: 1px solid #e5e5e5;">${esc(time)}</td>
           </tr>
           ${data.genre ? `<tr>
             <td style="padding: 8px 12px; border-bottom: 1px solid #e5e5e5; font-weight: 600;">Genre</td>
@@ -92,6 +138,7 @@ export async function POST(request: NextRequest) {
             <td style="padding: 8px 12px; border-bottom: 1px solid #e5e5e5;">${esc(data.role)}</td>
           </tr>` : ""}
         </table>
+        ${approvalLinks}
       </div>
     `;
 
@@ -117,6 +164,45 @@ export async function POST(request: NextRequest) {
         { error: "Failed to send submission" },
         { status: 500 }
       );
+    }
+
+    try {
+      const confirmationHtml = `
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; color: #1a1a1a;">
+          <h2 style="margin-bottom: 24px; font-size: 20px;">We got your show submission</h2>
+          <p style="line-height: 1.6; margin-bottom: 16px;">
+            Thanks for submitting ${esc(data.artist)} at ${esc(data.venue)} on ${esc(data.date)}.
+          </p>
+          <p style="line-height: 1.6; margin-bottom: 16px;">
+            We review submissions daily and add shows within 24 hours.
+          </p>
+          <p style="line-height: 1.6; margin-bottom: 0;">
+            If you have questions, reply to this email.
+          </p>
+        </div>
+      `;
+
+      const confirmRes = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${resendKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          from: "Fifth Set <noreply@fifthset.live>",
+          to: [data.email],
+          reply_to: "hello@fifthset.live",
+          subject: "We got your show submission",
+          html: confirmationHtml,
+        }),
+      });
+
+      if (!confirmRes.ok) {
+        const confirmErr = await confirmRes.text();
+        console.error("Confirmation email error:", confirmErr);
+      }
+    } catch (confirmError) {
+      console.error("Failed to send confirmation email:", confirmError);
     }
 
     return NextResponse.json({ success: true });

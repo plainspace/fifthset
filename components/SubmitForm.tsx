@@ -1,14 +1,76 @@
 "use client";
 
-import { useState, FormEvent } from "react";
+import { useState, useRef, useCallback, useEffect, FormEvent } from "react";
 import { Send, Music, MapPin, Calendar, Clock, CheckCircle } from "lucide-react";
 
 const INPUT_CLASS =
   "w-full rounded-lg bg-bg border border-border px-4 py-2.5 text-sm text-text placeholder:text-text-muted/50 focus:outline-none focus:border-accent transition-colors";
 
+interface VenueSuggestion {
+  id: string;
+  name: string;
+  city_slug: string;
+}
+
+function useVenueAutocomplete(city: string) {
+  const [query, setQuery] = useState("");
+  const [suggestions, setSuggestions] = useState<VenueSuggestion[]>([]);
+  const [isOpen, setIsOpen] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(-1);
+  const timerRef = useRef<ReturnType<typeof setTimeout>>();
+
+  const search = useCallback(
+    (value: string) => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+      setQuery(value);
+
+      if (value.trim().length < 2) {
+        setSuggestions([]);
+        setIsOpen(false);
+        return;
+      }
+
+      timerRef.current = setTimeout(async () => {
+        try {
+          const params = new URLSearchParams({ q: value.trim() });
+          if (city && city !== "other") params.set("city", city);
+          const res = await fetch(`/api/venues/search?${params}`);
+          if (!res.ok) return;
+          const json = await res.json();
+          const items: VenueSuggestion[] = json.venues ?? [];
+          setSuggestions(items);
+          setIsOpen(items.length > 0);
+          setActiveIndex(-1);
+        } catch {
+          setSuggestions([]);
+          setIsOpen(false);
+        }
+      }, 300);
+    },
+    [city]
+  );
+
+  const close = useCallback(() => {
+    setIsOpen(false);
+    setActiveIndex(-1);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, []);
+
+  return { query, suggestions, isOpen, activeIndex, setActiveIndex, search, close, setIsOpen };
+}
+
 export default function SubmitForm() {
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
+  const [selectedCity, setSelectedCity] = useState("");
+  const venueInputRef = useRef<HTMLInputElement>(null);
+  const listboxRef = useRef<HTMLUListElement>(null);
+  const ac = useVenueAutocomplete(selectedCity);
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -39,8 +101,8 @@ export default function SubmitForm() {
 
   if (status === "success") {
     return (
-      <div className="rounded-xl bg-surface border border-border p-8 sm:p-12 text-center space-y-4">
-        <CheckCircle className="w-12 h-12 text-accent mx-auto" />
+      <div role="status" className="rounded-xl bg-surface border border-border p-8 sm:p-12 text-center space-y-4">
+        <CheckCircle className="w-12 h-12 text-accent mx-auto" aria-hidden="true" />
         <h2 className="font-serif text-2xl text-text">Show submitted</h2>
         <p className="text-text-muted text-balance max-w-md mx-auto">
           We review submissions daily. Most shows are added within 24 hours.
@@ -70,7 +132,7 @@ export default function SubmitForm() {
       {/* Event details */}
       <div className="rounded-xl bg-surface border border-border p-6 sm:p-8 space-y-6">
         <h2 className="font-serif text-xl text-text flex items-center gap-2">
-          <Music className="w-5 h-5 text-accent" />
+          <Music className="w-5 h-5 text-accent" aria-hidden="true" />
           Event details
         </h2>
 
@@ -105,7 +167,7 @@ export default function SubmitForm() {
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
             <label htmlFor="date" className="block text-sm text-text-muted mb-1.5">
-              <Calendar className="w-3.5 h-3.5 inline mr-1" />
+              <Calendar className="w-3.5 h-3.5 inline mr-1" aria-hidden="true" />
               Date *
             </label>
             <input
@@ -117,17 +179,43 @@ export default function SubmitForm() {
             />
           </div>
           <div>
-            <label htmlFor="time" className="block text-sm text-text-muted mb-1.5">
-              <Clock className="w-3.5 h-3.5 inline mr-1" />
+            <label className="block text-sm text-text-muted mb-1.5">
+              <Clock className="w-3.5 h-3.5 inline mr-1" aria-hidden="true" />
               Start time *
             </label>
-            <input
-              type="time"
-              id="time"
-              name="time"
-              required
-              className={INPUT_CLASS}
-            />
+            <div className="flex gap-2">
+              <select
+                id="time_hour"
+                name="time_hour"
+                required
+                className={INPUT_CLASS}
+              >
+                <option value="">Hr</option>
+                {Array.from({ length: 12 }, (_, i) => i + 1).map((h) => (
+                  <option key={h} value={String(h)}>{h}</option>
+                ))}
+              </select>
+              <select
+                id="time_minute"
+                name="time_minute"
+                required
+                className={INPUT_CLASS}
+              >
+                <option value="">Min</option>
+                {["00", "15", "30", "45"].map((m) => (
+                  <option key={m} value={m}>{m}</option>
+                ))}
+              </select>
+              <select
+                id="time_period"
+                name="time_period"
+                required
+                className={INPUT_CLASS}
+              >
+                <option value="PM">PM</option>
+                <option value="AM">AM</option>
+              </select>
+            </div>
           </div>
         </div>
 
@@ -148,23 +236,92 @@ export default function SubmitForm() {
       {/* Venue details */}
       <div className="rounded-xl bg-surface border border-border p-6 sm:p-8 space-y-6">
         <h2 className="font-serif text-xl text-text flex items-center gap-2">
-          <MapPin className="w-5 h-5 text-accent" />
+          <MapPin className="w-5 h-5 text-accent" aria-hidden="true" />
           Venue
         </h2>
 
         <div className="grid sm:grid-cols-2 gap-4">
-          <div>
+          <div className="relative">
             <label htmlFor="venue" className="block text-sm text-text-muted mb-1.5">
               Venue name *
             </label>
             <input
+              ref={venueInputRef}
               type="text"
               id="venue"
               name="venue"
               required
               placeholder="e.g. Preservation Hall"
+              autoComplete="off"
+              role="combobox"
+              aria-expanded={ac.isOpen}
+              aria-controls="venue-listbox"
+              aria-autocomplete="list"
+              aria-activedescendant={ac.activeIndex >= 0 ? `venue-option-${ac.activeIndex}` : undefined}
               className={INPUT_CLASS}
+              onChange={(e) => ac.search(e.target.value)}
+              onFocus={() => {
+                if (ac.suggestions.length > 0) ac.setIsOpen(true);
+              }}
+              onBlur={() => {
+                setTimeout(() => ac.close(), 150);
+              }}
+              onKeyDown={(e) => {
+                if (!ac.isOpen) return;
+                if (e.key === "ArrowDown") {
+                  e.preventDefault();
+                  ac.setActiveIndex((prev) =>
+                    prev < ac.suggestions.length - 1 ? prev + 1 : 0
+                  );
+                } else if (e.key === "ArrowUp") {
+                  e.preventDefault();
+                  ac.setActiveIndex((prev) =>
+                    prev > 0 ? prev - 1 : ac.suggestions.length - 1
+                  );
+                } else if (e.key === "Enter" && ac.activeIndex >= 0) {
+                  e.preventDefault();
+                  const selected = ac.suggestions[ac.activeIndex];
+                  if (selected && venueInputRef.current) {
+                    venueInputRef.current.value = selected.name;
+                    ac.close();
+                  }
+                } else if (e.key === "Escape") {
+                  ac.close();
+                }
+              }}
             />
+            {ac.isOpen && (
+              <ul
+                ref={listboxRef}
+                id="venue-listbox"
+                role="listbox"
+                aria-label="Venue suggestions"
+                className="absolute z-10 mt-1 w-full rounded-xl bg-surface border border-border shadow-lg overflow-hidden"
+              >
+                {ac.suggestions.map((venue, i) => (
+                  <li
+                    key={venue.id}
+                    id={`venue-option-${i}`}
+                    role="option"
+                    aria-selected={i === ac.activeIndex}
+                    className={`px-4 py-2.5 text-sm cursor-pointer transition-colors ${
+                      i === ac.activeIndex
+                        ? "bg-accent/10 text-accent"
+                        : "text-text hover:bg-accent/5"
+                    }`}
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      if (venueInputRef.current) {
+                        venueInputRef.current.value = venue.name;
+                        ac.close();
+                      }
+                    }}
+                  >
+                    {venue.name}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
           <div>
             <label htmlFor="city" className="block text-sm text-text-muted mb-1.5">
@@ -175,6 +332,8 @@ export default function SubmitForm() {
               name="city"
               required
               className={INPUT_CLASS}
+              value={selectedCity}
+              onChange={(e) => setSelectedCity(e.target.value)}
             >
               <option value="">Select a city</option>
               <option value="nyc">New York City</option>
@@ -198,7 +357,7 @@ export default function SubmitForm() {
             placeholder="https://..."
             className={INPUT_CLASS}
           />
-          <p className="text-xs text-text-muted/60 mt-1.5">
+          <p className="text-xs text-text-subtle mt-1.5">
             If you share your calendar URL, we can add it as a recurring
             source so your shows appear automatically.
           </p>
@@ -257,7 +416,7 @@ export default function SubmitForm() {
 
       {/* Error message */}
       {status === "error" && (
-        <div className="rounded-lg bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-400">
+        <div role="alert" className="rounded-lg bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-400">
           {errorMsg || "Something went wrong. Please try again."}
         </div>
       )}
@@ -271,7 +430,7 @@ export default function SubmitForm() {
         >
           {status === "loading" ? (
             <>
-              <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
+              <svg aria-hidden="true" className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
               </svg>
@@ -279,14 +438,14 @@ export default function SubmitForm() {
             </>
           ) : (
             <>
-              <Send className="w-4 h-4" />
+              <Send className="w-4 h-4" aria-hidden="true" />
               Submit Show
             </>
           )}
         </button>
       </div>
 
-      <p className="text-center text-xs text-text-muted/60">
+      <p className="text-center text-xs text-text-subtle">
         We review submissions daily. Most shows are added within 24 hours.
       </p>
     </form>

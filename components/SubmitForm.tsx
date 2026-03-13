@@ -195,7 +195,7 @@ export default function SubmitForm() {
                 required
                 className={INPUT_CLASS}
               >
-                <option value="">Min</option>
+                <option value="00">00</option>
                 {["00", "15", "30", "45"].map((m) => (
                   <option key={m} value={m}>{m}</option>
                 ))}
@@ -235,6 +235,27 @@ export default function SubmitForm() {
         </h2>
 
         <div className="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="city" className="block text-sm text-text-muted mb-1.5">
+              City *
+            </label>
+            <select
+              id="city"
+              name="city"
+              required
+              className={INPUT_CLASS}
+              value={selectedCity}
+              onChange={(e) => setSelectedCity(e.target.value)}
+            >
+              <option value="">Select a city</option>
+              <option value="nyc">New York City</option>
+              <option value="nola">New Orleans</option>
+              <option value="chicago">Chicago</option>
+              <option value="la">Los Angeles</option>
+              <option value="sf">San Francisco</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
           <div className="relative">
             <label htmlFor="venue" className="block text-sm text-text-muted mb-1.5">
               Venue name *
@@ -316,27 +337,6 @@ export default function SubmitForm() {
                 ))}
               </ul>
             )}
-          </div>
-          <div>
-            <label htmlFor="city" className="block text-sm text-text-muted mb-1.5">
-              City *
-            </label>
-            <select
-              id="city"
-              name="city"
-              required
-              className={INPUT_CLASS}
-              value={selectedCity}
-              onChange={(e) => setSelectedCity(e.target.value)}
-            >
-              <option value="">Select a city</option>
-              <option value="nyc">New York City</option>
-              <option value="nola">New Orleans</option>
-              <option value="chicago">Chicago</option>
-              <option value="la">Los Angeles</option>
-              <option value="sf">San Francisco</option>
-              <option value="other">Other</option>
-            </select>
           </div>
         </div>
 

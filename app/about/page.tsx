@@ -26,7 +26,7 @@ export default function AboutPage() {
             </p>
 
             <p>
-              Fifth Set pulls together jazz listings from across the city into
+              Fifth Set curates jazz listings from across the city into
               one clean, filterable, mappable view. No more scrolling through
               dense tables or checking five different websites. Just open the
               app, pick your neighborhood and time, and go hear some music.
@@ -41,8 +41,8 @@ export default function AboutPage() {
             <h2 className="font-serif text-xl text-text pt-4">How it works</h2>
 
             <p>
-              We pull listings daily from trusted sources, clean up the
-              data, and present it all in a modern interface.
+              We curate listings daily, clean up the data, and present
+              it all in a modern interface.
               Filter by borough, time of day, or just browse the map.
             </p>
 

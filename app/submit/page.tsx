@@ -22,8 +22,8 @@ export default function SubmitPage() {
             <span className="text-accent">Fifth Set</span>
           </h1>
           <p className="text-text-muted text-lg mt-6 max-w-xl mx-auto text-balance">
-            We pull listings from public calendars daily, but we don&apos;t
-            catch everything. If your show is missing, let us know.
+            We curate listings daily, but we don&apos;t catch everything.
+            If your show is missing, let us know.
           </p>
         </section>
 
@@ -35,31 +35,12 @@ export default function SubmitPage() {
             </h2>
             <div className="space-y-3 text-sm text-text-muted">
               <p className="text-pretty">
-                Fifth Set pulls jazz listings from public sources
-                including{" "}
-                <a
-                  href="https://jazz-nyc.com/"
-                  className="text-accent hover:underline"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  jazz-nyc.com
-                </a>{" "}
-                and{" "}
-                <a
-                  href="https://www.wwoz.org/livewire"
-                  className="text-accent hover:underline"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  WWOZ Livewire
-                </a>
-                . Listings update every morning automatically.
+                Fifth Set curates jazz listings across every city we
+                cover. Listings update every morning automatically.
               </p>
               <p className="text-pretty">
-                If your venue or event isn&apos;t showing up, it might not be
-                listed on a source we track yet. Submit it here and we&apos;ll
-                add it manually and look into adding your calendar as a source.
+                If your venue or event isn&apos;t showing up, submit it
+                here and we&apos;ll add it.
               </p>
             </div>
           </div>
@@ -70,32 +51,7 @@ export default function SubmitPage() {
           <SubmitForm />
         </section>
 
-        {/* WWOZ attribution */}
-        <section className="max-w-3xl mx-auto px-4 sm:px-6 pb-24">
-          <div className="rounded-xl bg-surface border border-border p-6 text-center">
-            <p className="text-sm text-text-muted text-balance">
-              New Orleans listings powered by{" "}
-              <a
-                href="https://www.wwoz.org/livewire"
-                className="text-accent hover:underline"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                WWOZ Livewire Music Calendar
-              </a>
-              . Artists and venues can also submit directly to{" "}
-              <a
-                href="https://www.wwoz.org/submitting-events-livewire-music-calendar"
-                className="text-accent hover:underline"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                WWOZ
-              </a>
-              .
-            </p>
-          </div>
-        </section>
+        <div className="pb-24" />
       </main>
       <Footer />
     </>

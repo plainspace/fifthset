@@ -83,19 +83,58 @@ export default async function VenueDetailPage({
         ])}
       />
       {/* Venue header */}
-      <div className={cn("bg-surface rounded-lg overflow-hidden", isFeatured && "featured-border")}>
-        {venue.photo_url && (
-          <Image
-            src={venue.photo_url}
-            alt={venue.name}
-            width={896}
-            height={200}
-            className="w-full h-[200px] object-cover"
-          />
-        )}
-        <div className="p-6 sm:p-8">
-        <div className="flex items-start justify-between">
-          <div>
+      <div className={cn(
+        "relative rounded-2xl overflow-hidden",
+        venue.photo_url ? "min-h-[280px] sm:min-h-[320px]" : "bg-surface",
+        isFeatured && "featured-border",
+      )}>
+        {venue.photo_url ? (
+          <>
+            <Image
+              src={venue.photo_url}
+              alt={venue.name}
+              fill
+              className="object-cover"
+              priority
+            />
+            <div className="absolute inset-0 bg-black/40" />
+            <div className="relative z-10 flex items-end h-full p-4 sm:p-6">
+              <div className="w-full rounded-xl bg-white/10 backdrop-blur-xl border border-white/20 p-5 sm:p-6 shadow-lg">
+                <div className="flex items-center gap-2">
+                  <h1 className="font-serif text-2xl sm:text-3xl text-white">{venue.name}</h1>
+                  {isFeatured && <Star className="w-5 h-5 text-accent fill-accent" />}
+                </div>
+                <div className="flex items-center gap-1.5 mt-2 text-white/70">
+                  <MapPin className="w-4 h-4" />
+                  <span>{venue.address}</span>
+                </div>
+                <div className="flex flex-wrap gap-4 mt-3">
+                  {venue.website && (
+                    <a
+                      href={venue.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1.5 text-sm text-accent hover:text-accent-hover transition-colors"
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                      Website
+                    </a>
+                  )}
+                  {venue.phone && (
+                    <a
+                      href={`tel:${venue.phone}`}
+                      className="flex items-center gap-1.5 text-sm text-white/60 hover:text-white transition-colors"
+                    >
+                      <Phone className="w-4 h-4" />
+                      {venue.phone}
+                    </a>
+                  )}
+                </div>
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="p-6 sm:p-8">
             <div className="flex items-center gap-2">
               <h1 className="font-serif text-3xl text-text">{venue.name}</h1>
               {isFeatured && <Star className="w-5 h-5 text-accent fill-accent" />}
@@ -104,32 +143,30 @@ export default async function VenueDetailPage({
               <MapPin className="w-4 h-4" />
               <span>{venue.address}</span>
             </div>
+            <div className="flex flex-wrap gap-4 mt-4">
+              {venue.website && (
+                <a
+                  href={venue.website}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 text-sm text-accent hover:text-accent-hover transition-colors"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  Website
+                </a>
+              )}
+              {venue.phone && (
+                <a
+                  href={`tel:${venue.phone}`}
+                  className="flex items-center gap-1.5 text-sm text-text-muted hover:text-text transition-colors"
+                >
+                  <Phone className="w-4 h-4" />
+                  {venue.phone}
+                </a>
+              )}
+            </div>
           </div>
-        </div>
-
-        <div className="flex flex-wrap gap-4 mt-4">
-          {venue.website && (
-            <a
-              href={venue.website}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1.5 text-sm text-accent hover:text-accent-hover transition-colors"
-            >
-              <ExternalLink className="w-4 h-4" />
-              Website
-            </a>
-          )}
-          {venue.phone && (
-            <a
-              href={`tel:${venue.phone}`}
-              className="flex items-center gap-1.5 text-sm text-text-muted hover:text-text transition-colors"
-            >
-              <Phone className="w-4 h-4" />
-              {venue.phone}
-            </a>
-          )}
-        </div>
-        </div>
+        )}
       </div>
 
       {/* Upcoming shows */}

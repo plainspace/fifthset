@@ -25,7 +25,7 @@ interface ScrapedEvent {
   artistUrl?: string;
 }
 
-function parseTime(timeStr: string): { start: string; end?: string } {
+function parseTime(timeStr: string): { start: string; end?: string; secondSet?: string } {
   // Handle formats like "7:00PM", "7:00PM - 11:00PM", "7 & 9:30PM"
   const cleaned = timeStr.trim().toUpperCase();
 
@@ -53,8 +53,10 @@ function parseTime(timeStr: string): { start: string; end?: string } {
     /(\d{1,2}(?::\d{2})?)\s*&\s*(\d{1,2}(?::\d{2})?)\s*(AM|PM)/
   );
   if (multiMatch) {
-    // Return first set time
-    return { start: to24h(multiMatch[1], multiMatch[3]) };
+    return {
+      start: to24h(multiMatch[1], multiMatch[3]),
+      secondSet: to24h(multiMatch[2], multiMatch[3]),
+    };
   }
 
   return { start: "00:00" };
@@ -117,7 +119,7 @@ export async function scrapeJazzNYC(): Promise<ScrapedEvent[]> {
     const date = parseDate(dateStr);
     if (!date) return;
 
-    const { start, end } = parseTime(timeStr);
+    const { start, end, secondSet } = parseTime(timeStr);
     const region = AREA_MAP[areaCode] || areaCode.toLowerCase();
 
     const venueName = venueCell.text().replace(/\u00a0/g, " ").trim();
@@ -127,16 +129,31 @@ export async function scrapeJazzNYC(): Promise<ScrapedEvent[]> {
 
     if (!venueName || !artistName) return;
 
+    // First set (or only show)
     events.push({
       date,
       startTime: start,
-      endTime: end,
+      endTime: secondSet ? undefined : end, // If multi-set, first set ends when second starts
       region,
       venueName,
       venueUrl: venueLink || undefined,
       artistName,
       artistUrl: artistLink || undefined,
     });
+
+    // Second set (if multi-set time like "7 & 9:30PM")
+    if (secondSet) {
+      events.push({
+        date,
+        startTime: secondSet,
+        endTime: end,
+        region,
+        venueName,
+        venueUrl: venueLink || undefined,
+        artistName,
+        artistUrl: artistLink || undefined,
+      });
+    }
   });
 
   console.log(`Scraped ${events.length} events from jazz-nyc.com`);
@@ -165,8 +182,11 @@ if (require.main === module) {
       const { config } = await import("dotenv");
       config();
 
-      const { pushToSupabase } = await import("./push-to-db");
-      await pushToSupabase(normalized, "nyc");
+      const { pushToSupabase, cleanupStaleEvents } = await import("./push-to-db");
+      const stats = await pushToSupabase(normalized, "nyc");
+
+      // Clean up old events
+      const cleaned = await cleanupStaleEvents();
 
       // Geocode any new venues
       const { geocodeNewVenues } = await import("./geocode");
@@ -174,8 +194,21 @@ if (require.main === module) {
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.SUPABASE_SERVICE_ROLE_KEY!
       );
+
+      console.log("\n--- Summary ---");
+      console.log(`Events: ${stats.eventsInserted} inserted, ${stats.eventsSkipped} skipped`);
+      console.log(`Venues: ${stats.venuesUpserted} upserted`);
+      console.log(`Artists: ${stats.artistsUpserted} upserted`);
+      console.log(`Rejected: ${normalized.rejected.length}`);
+      console.log(`Cleaned up: ${cleaned} stale events`);
+      if (stats.errors.length > 0) {
+        console.log(`Errors: ${stats.errors.length}`);
+      }
     } else {
       console.log(`\nDry run complete. Use --push to write to Supabase.`);
+      if (normalized.rejected.length > 0) {
+        console.log(`Would reject ${normalized.rejected.length} events.`);
+      }
     }
   })().catch(console.error);
 }

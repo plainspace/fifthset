@@ -80,6 +80,16 @@ export function formatDateFull(dateStr: string): string {
   return `${days[date.getDay()]}, ${months[date.getMonth()]} ${date.getDate()}`;
 }
 
+export function formatDateShort(dateStr: string): string {
+  const date = new Date(dateStr + "T00:00:00");
+  const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const months = [
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+  ];
+  return `${days[date.getDay()]}, ${months[date.getMonth()]} ${date.getDate()}`;
+}
+
 export function slugify(text: string): string {
   return text
     .toLowerCase()

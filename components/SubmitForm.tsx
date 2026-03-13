@@ -248,11 +248,26 @@ export default function SubmitForm() {
               onChange={(e) => setSelectedCity(e.target.value)}
             >
               <option value="">Select a city</option>
-              <option value="nyc">New York City</option>
-              <option value="nola">New Orleans</option>
+              <option value="atlanta">Atlanta</option>
+              <option value="austin">Austin</option>
+              <option value="boston">Boston</option>
               <option value="chicago">Chicago</option>
+              <option value="denver">Denver</option>
+              <option value="detroit">Detroit</option>
+              <option value="houston">Houston</option>
+              <option value="kc">Kansas City</option>
               <option value="la">Los Angeles</option>
+              <option value="miami">Miami</option>
+              <option value="minneapolis">Minneapolis</option>
+              <option value="nashville">Nashville</option>
+              <option value="nola">New Orleans</option>
+              <option value="nyc">New York City</option>
+              <option value="philly">Philadelphia</option>
+              <option value="pittsburgh">Pittsburgh</option>
+              <option value="portland">Portland</option>
+              <option value="seattle">Seattle</option>
               <option value="sf">San Francisco</option>
+              <option value="dc">Washington DC</option>
               <option value="other">Other</option>
             </select>
           </div>

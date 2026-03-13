@@ -93,9 +93,8 @@ body {
   background-color: var(--color-surface-hover);
 }
 
-.filter-pill[data-active="true"] {
-  background-color: var(--color-accent);
-  color: var(--color-bg);
+.filter-pill.bg-accent:hover {
+  background-color: #deb462;
 }
 
 /* Page content fade-in */

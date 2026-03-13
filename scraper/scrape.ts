@@ -1,5 +1,6 @@
 import * as cheerio from "cheerio";
 import { slugify } from "../lib/utils";
+import { isAllowedByRobots } from "./check-robots";
 
 // Area code to region mapping
 const AREA_MAP: Record<string, string> = {
@@ -94,10 +95,19 @@ function parseDate(dateStr: string): string {
 }
 
 export async function scrapeJazzNYC(): Promise<ScrapedEvent[]> {
-  const response = await fetch("https://jazz-nyc.com/", {
+  const targetUrl = "https://jazz-nyc.com/";
+  const ua = "FifthSet/1.0 (https://fifthset.live; hello@fifthset.live)";
+
+  const allowed = await isAllowedByRobots(targetUrl, ua);
+  if (!allowed) {
+    console.warn(`Blocked by robots.txt: ${targetUrl}`);
+    return [];
+  }
+
+  const response = await fetch(targetUrl, {
     headers: {
       "User-Agent":
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
+        "FifthSet/1.0 (https://fifthset.live; hello@fifthset.live)",
     },
   });
 

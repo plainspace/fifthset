@@ -1,4 +1,5 @@
 import * as cheerio from "cheerio";
+import { isAllowedByRobots } from "./check-robots";
 
 // =============================================================================
 // WWOZ Livewire Scraper for New Orleans
@@ -199,10 +200,19 @@ function lookupRegion(venueName: string): string {
 // --- Main scraper ---
 
 export async function scrapeWWOZ(): Promise<ScrapedEvent[]> {
-  const response = await fetch("https://www.wwoz.org/livewire", {
+  const targetUrl = "https://www.wwoz.org/livewire";
+  const ua = "FifthSet/1.0 (https://fifthset.live; hello@fifthset.live)";
+
+  const allowed = await isAllowedByRobots(targetUrl, ua);
+  if (!allowed) {
+    console.warn(`Blocked by robots.txt: ${targetUrl}`);
+    return [];
+  }
+
+  const response = await fetch(targetUrl, {
     headers: {
       "User-Agent":
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
+        "FifthSet/1.0 (https://fifthset.live; hello@fifthset.live)",
     },
   });
 

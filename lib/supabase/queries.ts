@@ -53,7 +53,7 @@ interface EventRow {
   description: string | null;
   source_url: string | null;
   is_boosted: boolean;
-  venues: DbVenue;
+  venues: DbVenue & { regions: { slug: string; name: string } | null };
   artists: DbArtist | null;
 }
 
@@ -75,7 +75,7 @@ function mapEventRow(e: EventRow, citySlug: string): Event {
       slug: e.venues.slug,
       address: e.venues.address || "",
       neighborhood: e.venues.neighborhood || "",
-      region: "",
+      region: e.venues.regions?.slug || "",
       lat: e.venues.lat || 0,
       lng: e.venues.lng || 0,
       website: e.venues.website || undefined,
@@ -142,6 +142,7 @@ export async function getCities(supabase: SupabaseClient): Promise<City[]> {
     lat: city.lat,
     lng: city.lng,
     timezone: city.timezone,
+    live: true,
     regions: (regions as DbRegion[])
       .filter((r) => r.city_id === city.id)
       .map((r) => ({ slug: r.slug, name: r.name, city_slug: city.slug })),
@@ -165,7 +166,8 @@ export async function getEvents(
       *,
       venues!inner (
         *,
-        cities!inner ( slug )
+        cities!inner ( slug ),
+        regions ( slug, name )
       ),
       artists ( * )
     `)
@@ -241,7 +243,7 @@ export async function getVenueEvents(
     .from("events")
     .select(`
       *,
-      venues ( * ),
+      venues ( *, regions ( slug, name ) ),
       artists ( * )
     `)
     .eq("venue_id", venueId)
@@ -287,7 +289,7 @@ export async function getArtistEvents(
     .from("events")
     .select(`
       *,
-      venues!inner ( *, cities!inner ( slug ) ),
+      venues!inner ( *, cities!inner ( slug ), regions ( slug, name ) ),
       artists ( * )
     `)
     .eq("artist_id", artistId)
@@ -378,7 +380,7 @@ export async function getFavoriteEvents(
     .from("events")
     .select(`
       *,
-      venues ( *, cities ( slug ) ),
+      venues ( *, cities ( slug ), regions ( slug, name ) ),
       artists ( * )
     `)
     .in("id", eventIds)

@@ -16,12 +16,11 @@ interface NominatimResult {
 }
 
 interface GooglePlacesResult {
-  results: {
-    geometry: { location: { lat: number; lng: number } };
-    formatted_address: string;
-    name: string;
+  places: {
+    location: { latitude: number; longitude: number };
+    formattedAddress: string;
+    displayName: { text: string };
   }[];
-  status: string;
 }
 
 interface GeocodeResult {
@@ -66,21 +65,31 @@ async function queryGooglePlaces(
   if (!apiKey) return null;
 
   const query = `${venueName} ${cityName}`;
-  const url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query)}&key=${apiKey}`;
 
   try {
-    const response = await fetch(url);
+    const response = await fetch(
+      "https://places.googleapis.com/v1/places:searchText",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Goog-Api-Key": apiKey,
+          "X-Goog-FieldMask": "places.location,places.formattedAddress,places.displayName",
+        },
+        body: JSON.stringify({ textQuery: query }),
+      }
+    );
     if (!response.ok) return null;
 
     const data: GooglePlacesResult = await response.json();
-    if (data.status !== "OK" || !data.results.length) return null;
+    if (!data.places?.length) return null;
 
-    const place = data.results[0];
+    const place = data.places[0];
     return {
-      lat: place.geometry.location.lat,
-      lng: place.geometry.location.lng,
-      address: place.formatted_address,
-      neighborhood: "", // Google doesn't return neighborhood reliably
+      lat: place.location.latitude,
+      lng: place.location.longitude,
+      address: place.formattedAddress,
+      neighborhood: "",
       source: "google",
     };
   } catch (err) {
@@ -203,7 +212,7 @@ export async function geocodeNewVenues(supabaseUrl: string, serviceKey: string) 
     .from("venues")
     .select("id, name, slug, neighborhood, lat, lng, geocode_source, city:cities(name)")
     .is("lat", null)
-    .neq("geocode_source", "manual")
+    .or("geocode_source.is.null,geocode_source.neq.manual")
     .order("name");
 
   if (error) throw error;

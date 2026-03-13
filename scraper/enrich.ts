@@ -109,7 +109,7 @@ function extractData($: cheerio.CheerioAPI): EnrichmentData {
     const digits = cleaned.replace(/\D/g, "");
     if (digits.length === 10 || (digits.length === 11 && digits.startsWith("1"))) {
       const phone = digits.length === 11 ? digits.slice(1) : digits;
-      data.phone = formatPhone(phone);
+      data.phone = formatPhone(phone) || undefined;
     }
   }
 
@@ -120,7 +120,7 @@ function extractData($: cheerio.CheerioAPI): EnrichmentData {
       const digits = schemaPhone.replace(/\D/g, "");
       if (digits.length === 10 || (digits.length === 11 && digits.startsWith("1"))) {
         const phone = digits.length === 11 ? digits.slice(1) : digits;
-        data.phone = formatPhone(phone);
+        data.phone = formatPhone(phone) || undefined;
       }
     }
   }
@@ -136,7 +136,7 @@ function extractData($: cheerio.CheerioAPI): EnrichmentData {
           const digits = String(phone).replace(/\D/g, "");
           if (digits.length === 10 || (digits.length === 11 && digits.startsWith("1"))) {
             const cleaned = digits.length === 11 ? digits.slice(1) : digits;
-            data.phone = formatPhone(cleaned);
+            data.phone = formatPhone(cleaned) || undefined;
           }
         }
       } catch {
@@ -152,7 +152,7 @@ function extractData($: cheerio.CheerioAPI): EnrichmentData {
     if (match) {
       const digits = match[0].replace(/\D/g, "");
       if (digits.length === 10) {
-        data.phone = formatPhone(digits);
+        data.phone = formatPhone(digits) || undefined;
       }
     }
   }
@@ -197,8 +197,25 @@ function isValidImageUrl(url: string): boolean {
   return url.startsWith("http://") || url.startsWith("https://");
 }
 
+// Valid US area codes start with 2-9, second digit is 0-9, third is 0-9
+// Additionally reject known non-geographic/fake patterns
+function isValidUSPhone(digits: string): boolean {
+  if (digits.length !== 10) return false;
+  const areaCode = parseInt(digits.slice(0, 3), 10);
+  // Area codes cannot start with 0 or 1
+  if (areaCode < 200) return false;
+  // N11 codes are service numbers (211, 311, 411, 511, 611, 711, 811, 911)
+  if (digits[1] === "1" && digits[2] === "1") return false;
+  // 555 is reserved for fictional use
+  if (areaCode === 555) return false;
+  // Exchange (next 3 digits) also can't start with 0 or 1
+  const exchange = parseInt(digits.slice(3, 6), 10);
+  if (exchange < 200) return false;
+  return true;
+}
+
 function formatPhone(digits: string): string {
-  if (digits.length !== 10) return digits;
+  if (!isValidUSPhone(digits)) return "";
   return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
 }
 

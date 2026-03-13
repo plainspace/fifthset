@@ -138,6 +138,20 @@ body {
   display: none;
 }
 
+/* Date picker styling */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.7) sepia(0.3) hue-rotate(350deg);
+  cursor: pointer;
+}
+
+input[type="date"]::-webkit-datetime-edit {
+  color: var(--color-text);
+}
+
+input[type="date"]::-webkit-datetime-edit-fields-wrapper {
+  padding: 0;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-pulse-live,
   .animate-fade-in,

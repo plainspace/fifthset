@@ -175,7 +175,7 @@ export default function SubmitForm() {
               id="date"
               name="date"
               required
-              className={INPUT_CLASS}
+              className={`${INPUT_CLASS} min-w-0`}
             />
           </div>
           <div>

@@ -26,7 +26,7 @@ export default function SettingsPage() {
   const [error, setError] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [email, setEmail] = useState<string | null>(null);
-  const [selectedCityId, setSelectedCityId] = useState<string>("");
+  const [selectedCitySlug, setSelectedCitySlug] = useState<string>("");
   const [selectedTimeFilter, setSelectedTimeFilter] = useState<TimeFilter>(null);
 
   useEffect(() => {
@@ -51,7 +51,7 @@ export default function SettingsPage() {
         .single();
 
       if (data) {
-        setSelectedCityId(data.home_city_id ?? "");
+        setSelectedCitySlug(data.home_city_slug ?? "");
         setSelectedTimeFilter(data.default_time_filter ?? null);
       }
 
@@ -73,7 +73,7 @@ export default function SettingsPage() {
       .upsert(
         {
           user_id: userId,
-          home_city_id: selectedCityId || null,
+          home_city_slug: selectedCitySlug || null,
           default_time_filter: selectedTimeFilter || null,
           updated_at: new Date().toISOString(),
         },
@@ -120,13 +120,13 @@ export default function SettingsPage() {
               </label>
               <div className="relative">
                 <select
-                  value={selectedCityId}
-                  onChange={(e) => setSelectedCityId(e.target.value)}
+                  value={selectedCitySlug}
+                  onChange={(e) => setSelectedCitySlug(e.target.value)}
                   className={selectClass}
                 >
                   <option value="">Select a city</option>
                   {cities.map((city) => (
-                    <option key={city.id} value={city.id}>
+                    <option key={city.slug} value={city.slug}>
                       {city.name}
                     </option>
                   ))}

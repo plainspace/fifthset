@@ -235,7 +235,8 @@ export async function geocodeNewVenues(supabaseUrl: string, serviceKey: string) 
       "Los Angeles": "Los Angeles, CA",
       "San Francisco": "San Francisco, CA",
     };
-    const cityData = venue.city as { name: string } | null;
+    const cityArr = venue.city as { name: string }[] | null;
+    const cityData = cityArr?.[0] ?? null;
     const cityName = cityData?.name
       ? CITY_GEOCODE_NAMES[cityData.name] || `${cityData.name}`
       : "New York City, NY";

@@ -10,11 +10,11 @@ import Search from "@/components/Search";
 import UserMenu from "@/components/UserMenu";
 
 const dateFiltersConfig = [
-  { label: "Tnght", short: "Tnght", href: "" },
-  { label: "Tmrrw", short: "Tmrrw", href: "/tomorrow" },
-  { label: "Ths Wknd", short: "Ths Wknd", href: "/this-weekend" },
-  { label: "Ths Wk", short: "Ths Wk", href: "/this-week" },
-  { label: "Nxt Wk", short: "Nxt Wk", href: "/next-week" },
+  { label: "Tnght", short: "Tnght", fullLabel: "Tonight", href: "" },
+  { label: "Tmrrw", short: "Tmrrw", fullLabel: "Tomorrow", href: "/tomorrow" },
+  { label: "Ths Wknd", short: "Ths Wknd", fullLabel: "This Weekend", href: "/this-weekend" },
+  { label: "Ths Wk", short: "Ths Wk", fullLabel: "This Week", href: "/this-week" },
+  { label: "Nxt Wk", short: "Nxt Wk", fullLabel: "Next Week", href: "/next-week" },
 ];
 
 export default function Nav() {
@@ -27,10 +27,11 @@ export default function Nav() {
   const dateFilters = dateFiltersConfig.map((f) => ({
     ...f,
     href: f.href ? `/${currentCity.slug}${f.href}` : `/${currentCity.slug}`,
+    fullLabel: f.fullLabel,
   }));
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-40 bg-bg/90 backdrop-blur-md border-b border-border">
+    <nav aria-label="Main navigation" className="fixed top-0 left-0 right-0 z-40 bg-bg/90 backdrop-blur-md border-b border-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -46,22 +47,25 @@ export default function Nav() {
             <div className="relative">
               <button
                 onClick={() => setCityOpen(!cityOpen)}
+                aria-expanded={cityOpen}
+                aria-haspopup="true"
                 className="flex items-center gap-1.5 text-sm text-text-muted hover:text-text transition-colors"
               >
-                <MapPin className="w-4 h-4" />
+                <MapPin className="w-4 h-4" aria-hidden="true" />
                 <span className="hidden lg:inline">{currentCity.name}</span>
                 <span className="lg:hidden">{currentCity.slug.toUpperCase()}</span>
-                <ChevronDown className={cn("w-3 h-3 transition-transform", cityOpen && "rotate-180")} />
+                <ChevronDown className={cn("w-3 h-3 transition-transform", cityOpen && "rotate-180")} aria-hidden="true" />
               </button>
               {cityOpen && (
                 <>
                   <div className="fixed inset-0" onClick={() => setCityOpen(false)} />
-                  <div className="absolute top-full mt-2 right-0 bg-surface border border-border rounded-lg shadow-xl py-1 min-w-[180px]">
+                  <div role="menu" className="absolute top-full mt-2 right-0 bg-surface border border-border rounded-lg shadow-xl py-1 min-w-[180px]">
                     {cities.map((city) =>
                       city.live ? (
                         <Link
                           key={city.slug}
                           href={`/${city.slug}`}
+                          role="menuitem"
                           onClick={() => setCityOpen(false)}
                           className={cn(
                             "block px-4 py-2 text-sm transition-colors",
@@ -95,6 +99,8 @@ export default function Nav() {
                 <Link
                   key={filter.label}
                   href={filter.href}
+                  aria-label={filter.fullLabel}
+                  aria-current={pathname === filter.href ? "page" : undefined}
                   className={cn(
                     "px-2 lg:px-3 py-1.5 text-xs lg:text-sm rounded-full transition-colors whitespace-nowrap",
                     pathname === filter.href
@@ -121,7 +127,7 @@ export default function Nav() {
                   : "text-text-muted hover:text-text"
               )}
             >
-              <Music className="w-4 h-4" />
+              <Music className="w-4 h-4" aria-hidden="true" />
               <span className="hidden lg:inline">Venues</span>
             </Link>
 
@@ -136,7 +142,7 @@ export default function Nav() {
                   : "text-text-muted hover:text-text"
               )}
             >
-              <MapPin className="w-4 h-4" />
+              <MapPin className="w-4 h-4" aria-hidden="true" />
               <span className="hidden lg:inline">Map</span>
             </Link>
 
@@ -151,7 +157,7 @@ export default function Nav() {
                   : "text-text-muted hover:text-text"
               )}
             >
-              <Star className="w-4 h-4" />
+              <Star className="w-4 h-4" aria-hidden="true" />
               <span className="hidden lg:inline">Saved</span>
             </Link>
 
@@ -161,16 +167,19 @@ export default function Nav() {
           {/* Mobile menu button */}
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
+            aria-expanded={mobileOpen}
+            aria-controls="mobile-menu"
+            aria-label={mobileOpen ? "Close menu" : "Open menu"}
             className="md:hidden text-text-muted hover:text-text"
           >
-            {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            {mobileOpen ? <X className="w-5 h-5" aria-hidden="true" /> : <Menu className="w-5 h-5" aria-hidden="true" />}
           </button>
         </div>
       </div>
 
       {/* Mobile menu */}
       {mobileOpen && (
-        <div className="md:hidden border-t border-border bg-bg/95 backdrop-blur-md">
+        <div id="mobile-menu" role="navigation" className="md:hidden border-t border-border bg-bg/95 backdrop-blur-md">
           <div className="px-4 py-4 space-y-4">
             {/* City selector */}
             <div className="space-y-2">
@@ -234,7 +243,7 @@ export default function Nav() {
               onClick={() => setMobileOpen(false)}
               className="flex items-center gap-2 text-text-muted hover:text-text py-2"
             >
-              <Music className="w-4 h-4" />
+              <Music className="w-4 h-4" aria-hidden="true" />
               Venues
             </Link>
             <Link
@@ -242,7 +251,7 @@ export default function Nav() {
               onClick={() => setMobileOpen(false)}
               className="flex items-center gap-2 text-text-muted hover:text-text py-2"
             >
-              <MapPin className="w-4 h-4" />
+              <MapPin className="w-4 h-4" aria-hidden="true" />
               Map View
             </Link>
             <Link
@@ -250,7 +259,7 @@ export default function Nav() {
               onClick={() => setMobileOpen(false)}
               className="flex items-center gap-2 text-text-muted hover:text-text py-2"
             >
-              <Star className="w-4 h-4" />
+              <Star className="w-4 h-4" aria-hidden="true" />
               Saved
             </Link>
 

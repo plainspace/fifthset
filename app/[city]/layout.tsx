@@ -39,7 +39,7 @@ export default async function CityLayout({
   return (
     <>
       <Nav />
-      <main className="pt-16 min-h-screen">
+      <main id="main-content" className="pt-16 min-h-screen">
         <div className="animate-fade-in">
           {children}
         </div>

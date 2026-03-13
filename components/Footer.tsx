@@ -24,8 +24,8 @@ export default function Footer({ featuredVenues, citySlug }: FooterProps = {}) {
             )}
           </div>
           <div className="flex gap-8 text-sm text-text-muted">
-            <div className="space-y-2">
-              <p className="text-text font-medium">Cities</p>
+            <nav aria-label="Cities" className="space-y-2">
+              <h3 className="text-text font-medium">Cities</h3>
               <Link
                 href="/nyc"
                 className="block hover:text-text transition-colors"
@@ -56,9 +56,9 @@ export default function Footer({ featuredVenues, citySlug }: FooterProps = {}) {
               >
                 San Francisco
               </Link>
-            </div>
-            <div className="space-y-2">
-              <p className="text-text font-medium">Fifth Set</p>
+            </nav>
+            <nav aria-label="Fifth Set" className="space-y-2">
+              <h3 className="text-text font-medium">Fifth Set</h3>
               <Link
                 href="/for-venues"
                 className="block hover:text-text transition-colors"
@@ -77,7 +77,7 @@ export default function Footer({ featuredVenues, citySlug }: FooterProps = {}) {
               >
                 About
               </Link>
-            </div>
+            </nav>
           </div>
         </div>
         <div className="mt-8 pt-8 border-t border-border text-xs text-text-muted">

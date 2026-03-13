@@ -50,7 +50,8 @@ export default function StarButton({ type, id, initialStarred = false }: StarBut
     <button
       onClick={handleToggle}
       disabled={loading}
-      title={starred ? "Remove from saved" : "Save"}
+      aria-label={starred ? "Remove from saved" : "Save"}
+      aria-pressed={starred}
       className={cn(
         "p-1.5 rounded-full transition-all",
         starred
@@ -60,6 +61,7 @@ export default function StarButton({ type, id, initialStarred = false }: StarBut
       )}
     >
       <Star
+        aria-hidden="true"
         className={cn(
           "w-4 h-4 transition-all",
           starred && "fill-accent",

@@ -38,17 +38,18 @@ export default function Search() {
       return;
     }
     const timeout = setTimeout(async () => {
+      const escaped = query.replace(/[%_\\]/g, (c) => `\\${c}`);
       const [venueRes, artistRes] = await Promise.all([
         supabase
           .from("venues")
           .select("name, slug, neighborhood, cities!inner(slug)")
           .eq("cities.slug", citySlug)
-          .ilike("name", `%${query}%`)
+          .ilike("name", `%${escaped}%`)
           .limit(5),
         supabase
           .from("artists")
           .select("name, slug")
-          .ilike("name", `%${query}%`)
+          .ilike("name", `%${escaped}%`)
           .limit(5),
       ]);
       setResults({
@@ -69,9 +70,10 @@ export default function Search() {
     return (
       <button
         onClick={() => setOpen(true)}
+        aria-label="Search"
         className="flex items-center gap-2 px-3 py-1.5 text-sm text-text-muted hover:text-text bg-surface rounded-lg transition-colors"
       >
-        <SearchIcon className="w-4 h-4" />
+        <SearchIcon className="w-4 h-4" aria-hidden="true" />
         <span className="hidden sm:inline">Search</span>
         <kbd className="hidden sm:inline text-xs text-text-muted/60 ml-1">⌘K</kbd>
       </button>
@@ -83,10 +85,10 @@ export default function Search() {
   return (
     <>
       <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50" onClick={() => setOpen(false)} />
-      <div className="fixed top-[20%] left-1/2 -translate-x-1/2 w-full max-w-lg z-50 px-4">
+      <div role="dialog" aria-modal="true" aria-label="Search venues and artists" className="fixed top-[20%] left-1/2 -translate-x-1/2 w-full max-w-lg z-50 px-4">
         <div className="bg-surface border border-border rounded-xl shadow-2xl overflow-hidden">
           <div className="flex items-center gap-3 px-4 py-3 border-b border-border">
-            <SearchIcon className="w-5 h-5 text-text-muted shrink-0" />
+            <SearchIcon className="w-5 h-5 text-text-muted shrink-0" aria-hidden="true" />
             <input
               ref={inputRef}
               value={query}
@@ -94,13 +96,13 @@ export default function Search() {
               placeholder="Search venues and artists..."
               className="flex-1 bg-transparent text-text placeholder:text-text-muted/60 outline-none"
             />
-            <button onClick={() => setOpen(false)} className="text-text-muted hover:text-text">
-              <X className="w-4 h-4" />
+            <button onClick={() => setOpen(false)} aria-label="Close search" className="text-text-muted hover:text-text">
+              <X className="w-4 h-4" aria-hidden="true" />
             </button>
           </div>
 
           {hasResults && (
-            <div className="max-h-80 overflow-y-auto p-2">
+            <div aria-live="polite" className="max-h-80 overflow-y-auto p-2">
               {results.venues.length > 0 && (
                 <div className="mb-2">
                   <p className="text-xs uppercase tracking-wider text-text-muted px-2 py-1">Venues</p>
@@ -142,7 +144,7 @@ export default function Search() {
           )}
 
           {query.length < 2 && (
-            <div className="p-6 text-center text-text-muted/60 text-sm">
+            <div className="p-6 text-center text-text-subtle text-sm">
               Type to search venues and artists
             </div>
           )}

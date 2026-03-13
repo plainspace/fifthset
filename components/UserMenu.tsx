@@ -56,6 +56,9 @@ export default function UserMenu() {
     <div className="relative">
       <button
         onClick={() => setMenuOpen(!menuOpen)}
+        aria-label="Account menu"
+        aria-expanded={menuOpen}
+        aria-haspopup="true"
         className="w-8 h-8 rounded-full bg-accent text-bg flex items-center justify-center text-sm font-medium"
       >
         {initial}
@@ -63,26 +66,28 @@ export default function UserMenu() {
       {menuOpen && (
         <>
           <div className="fixed inset-0" onClick={() => setMenuOpen(false)} />
-          <div className="absolute top-full mt-2 right-0 bg-surface border border-border rounded-lg shadow-xl py-1 min-w-[200px]">
+          <div role="menu" className="absolute top-full mt-2 right-0 bg-surface border border-border rounded-lg shadow-xl py-1 min-w-[200px]">
             <div className="px-4 py-2 border-b border-border">
               <p className="text-sm text-text-muted truncate">{truncatedEmail}</p>
             </div>
             <Link
               href="/settings"
+              role="menuitem"
               onClick={() => setMenuOpen(false)}
               className="block px-4 py-2 text-sm text-text-muted hover:text-text hover:bg-surface-hover transition-colors"
             >
               <span className="flex items-center gap-2">
-                <Settings className="w-4 h-4" />
+                <Settings className="w-4 h-4" aria-hidden="true" />
                 Preferences
               </span>
             </Link>
             <button
+              role="menuitem"
               onClick={handleSignOut}
               className="w-full text-left block px-4 py-2 text-sm text-text-muted hover:text-text hover:bg-surface-hover transition-colors"
             >
               <span className="flex items-center gap-2">
-                <LogOut className="w-4 h-4" />
+                <LogOut className="w-4 h-4" aria-hidden="true" />
                 Sign Out
               </span>
             </button>

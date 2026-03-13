@@ -54,7 +54,7 @@ export default function LoginPage() {
     "w-full bg-surface border border-border rounded-lg px-4 py-3 text-text placeholder:text-text-muted/50 focus:outline-none focus:border-accent transition-colors";
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
+    <main className="min-h-screen flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-10">
           <Link href="/" className="inline-block mb-6">
@@ -71,10 +71,11 @@ export default function LoginPage() {
           {step === "email" ? (
             <form onSubmit={handleSendCode} className="flex flex-col gap-4">
               <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted/50" />
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted/50" aria-hidden="true" />
                 <input
                   type="email"
                   placeholder="Email"
+                  aria-label="Email address"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -84,7 +85,7 @@ export default function LoginPage() {
               </div>
 
               {error && (
-                <p className="text-red-400 text-sm px-1">{error}</p>
+                <p role="alert" className="text-red-400 text-sm px-1">{error}</p>
               )}
 
               <button
@@ -108,6 +109,7 @@ export default function LoginPage() {
                 inputMode="numeric"
                 pattern="[0-9]*"
                 placeholder="Enter code"
+                aria-label="Verification code"
                 value={code}
                 onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 8))}
                 required
@@ -117,7 +119,7 @@ export default function LoginPage() {
               />
 
               {error && (
-                <p className="text-red-400 text-sm px-1">{error}</p>
+                <p role="alert" className="text-red-400 text-sm px-1">{error}</p>
               )}
 
               <button
@@ -150,6 +152,6 @@ export default function LoginPage() {
           </Link>
         </p>
       </div>
-    </div>
+    </main>
   );
 }

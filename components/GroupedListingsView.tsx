@@ -97,7 +97,7 @@ export default function GroupedListingsView({
       </div>
 
       <div className="flex items-center gap-2 mb-6 text-sm text-text-muted">
-        <Music className="w-4 h-4" />
+        <Music className="w-4 h-4" aria-hidden="true" />
         <span>
           {filteredEvents.length}{' '}
           {filteredEvents.length === 1 ? 'show' : 'shows'} {showLabel}
@@ -107,7 +107,7 @@ export default function GroupedListingsView({
       {Object.keys(eventsByDate).length === 0 ? (
         <div className="text-center py-16">
           <p className="text-text-muted text-lg">No shows found {showLabel}</p>
-          <p className="text-text-muted/60 text-sm mt-2">
+          <p className="text-text-subtle text-sm mt-2">
             Try adjusting your filters
           </p>
         </div>
@@ -121,7 +121,7 @@ export default function GroupedListingsView({
                   <span className="uppercase tracking-wider">
                     {getDateLabel(date)}
                   </span>
-                  <span className="text-text-muted/60 mx-1.5">/</span>
+                  <span className="text-text-subtle mx-1.5">/</span>
                   <span className="font-mono">{formatDateFull(date)}</span>
                 </h2>
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">

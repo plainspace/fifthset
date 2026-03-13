@@ -22,7 +22,7 @@ export default function EventList({ events, citySlug }: EventListProps) {
     return (
       <div className="text-center py-16">
         <p className="text-text-muted text-lg">No shows found</p>
-        <p className="text-text-muted/60 text-sm mt-2">
+        <p className="text-text-subtle text-sm mt-2">
           Try adjusting your filters or check another date
         </p>
       </div>

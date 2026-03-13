@@ -94,7 +94,7 @@ export default function ListingsView({
       </div>
 
       <div className="flex items-center gap-2 mb-6 text-sm text-text-muted">
-        <Music className="w-4 h-4" />
+        <Music className="w-4 h-4" aria-hidden="true" />
         <span>
           {filteredEvents.length}{' '}
           {filteredEvents.length === 1 ? 'show' : 'shows'} {showLabel}

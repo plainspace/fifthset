@@ -37,10 +37,10 @@ export default function FilterBar({
         <button
           onClick={() => {
             if (!allRegions) {
-              // Clear all selections to go back to "All"
               activeRegions.forEach((r) => onRegionToggle(r));
             }
           }}
+          aria-pressed={allRegions}
           className={cn(
             "filter-pill px-3 py-1.5 text-sm rounded-full shrink-0 transition-colors",
             allRegions
@@ -54,6 +54,7 @@ export default function FilterBar({
           <button
             key={region.slug}
             onClick={() => onRegionToggle(region.slug)}
+            aria-pressed={activeRegions.has(region.slug)}
             className={cn(
               "filter-pill px-3 py-1.5 text-sm rounded-full shrink-0 transition-colors",
               activeRegions.has(region.slug)
@@ -77,6 +78,7 @@ export default function FilterBar({
               activeTimes.forEach((t) => onTimeToggle(t));
             }
           }}
+          aria-pressed={allTimes}
           className={cn(
             "filter-pill px-3 py-1.5 text-sm rounded-full shrink-0 transition-colors",
             allTimes
@@ -90,6 +92,7 @@ export default function FilterBar({
           <button
             key={filter.value}
             onClick={() => onTimeToggle(filter.value)}
+            aria-pressed={activeTimes.has(filter.value)}
             className={cn(
               "filter-pill px-3 py-1.5 text-sm rounded-full shrink-0 transition-colors",
               activeTimes.has(filter.value)

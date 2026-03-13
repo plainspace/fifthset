@@ -98,7 +98,7 @@ export default function SettingsPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-6 h-6 text-text-muted animate-spin" />
+        <Loader2 className="w-6 h-6 text-text-muted animate-spin" aria-hidden="true" />
       </div>
     );
   }
@@ -107,7 +107,7 @@ export default function SettingsPage() {
     "w-full bg-bg border border-border rounded-lg px-4 py-3 text-text focus:outline-none focus:border-accent transition-colors appearance-none cursor-pointer";
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-16">
+    <main className="min-h-screen flex items-center justify-center px-4 py-16">
       <div className="w-full max-w-lg">
         <div className="bg-surface border border-border rounded-2xl p-8">
           <h1 className="font-serif text-2xl text-text mb-1">Preferences</h1>
@@ -115,11 +115,12 @@ export default function SettingsPage() {
 
           <div className="flex flex-col gap-8">
             <div>
-              <label className="block font-mono text-xs text-text-muted uppercase tracking-widest mb-3">
+              <label htmlFor="home-city" className="block font-mono text-xs text-text-muted uppercase tracking-widest mb-3">
                 Home City
               </label>
               <div className="relative">
                 <select
+                  id="home-city"
                   value={selectedCitySlug}
                   onChange={(e) => setSelectedCitySlug(e.target.value)}
                   className={selectClass}
@@ -133,6 +134,7 @@ export default function SettingsPage() {
                 </select>
                 <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-text-muted">
                   <svg
+                    aria-hidden="true"
                     width="12"
                     height="12"
                     viewBox="0 0 12 12"
@@ -199,6 +201,6 @@ export default function SettingsPage() {
           </button>
         </div>
       </div>
-    </div>
+    </main>
   );
 }

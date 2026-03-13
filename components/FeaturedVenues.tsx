@@ -37,7 +37,7 @@ export default function FeaturedVenues({
               href={`/${citySlug}/venues/${venue.slug}`}
               className="flex items-center gap-2 group"
             >
-              <Star className="w-3 h-3 text-accent fill-accent" />
+              <Star className="w-3 h-3 text-accent fill-accent" aria-hidden="true" />
               <span className="text-sm text-text-muted group-hover:text-text transition-colors">
                 {venue.name}
               </span>
@@ -64,7 +64,7 @@ export default function FeaturedVenues({
               "flex items-center gap-2 shrink-0"
             )}
           >
-            <Star className="w-3 h-3 text-accent fill-accent shrink-0" />
+            <Star className="w-3 h-3 text-accent fill-accent shrink-0" aria-hidden="true" />
             <span className="text-sm text-text font-medium whitespace-nowrap">
               {venue.name}
             </span>

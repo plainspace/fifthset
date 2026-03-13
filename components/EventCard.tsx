@@ -49,7 +49,7 @@ export default function EventCard({ event, citySlug, starred }: EventCardProps) 
         </Link>
 
         {event.venue.address && (
-          <p className="mt-1 text-xs text-text-muted/60 truncate">
+          <p className="mt-1 text-xs text-text-subtle truncate">
             {event.venue.address}
           </p>
         )}
@@ -59,18 +59,18 @@ export default function EventCard({ event, citySlug, starred }: EventCardProps) 
       <div className="flex items-end justify-between gap-4 mt-3">
         <div className="flex flex-col gap-1.5 text-sm text-text-muted">
           <span className="flex items-center gap-1.5">
-            <Calendar className="w-3.5 h-3.5 shrink-0" />
+            <Calendar className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
             {formatDateShort(event.date)}
           </span>
           <span className="flex items-center gap-1.5">
-            <Clock className="w-3.5 h-3.5 shrink-0" />
+            <Clock className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
             <span className="font-mono">
               {formatTime(event.start_time)}
               {event.end_time && ` – ${formatTime(event.end_time)}`}
             </span>
           </span>
           <span className="flex items-center gap-1.5">
-            <MapPin className="w-3.5 h-3.5 shrink-0" />
+            <MapPin className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
             {event.venue.neighborhood}
           </span>
         </div>
@@ -83,7 +83,7 @@ export default function EventCard({ event, citySlug, starred }: EventCardProps) 
               className="text-text-muted hover:text-accent transition-colors"
               aria-label="Tickets"
             >
-              <ExternalLink className="w-4 h-4" />
+              <ExternalLink className="w-4 h-4" aria-hidden="true" />
             </a>
           )}
           <StarButton type="event" id={event.id} initialStarred={starred} />

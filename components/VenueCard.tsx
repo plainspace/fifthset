@@ -34,7 +34,7 @@ export default function VenueCard({
             {venue.name}
           </h3>
           {isFeatured && (
-            <Star className="w-3.5 h-3.5 text-accent fill-accent" />
+            <Star className="w-3.5 h-3.5 text-accent fill-accent" aria-hidden="true" />
           )}
         </div>
         {eventCount !== undefined && (
@@ -46,11 +46,11 @@ export default function VenueCard({
       <div className="flex items-end justify-between gap-4 mt-3">
         <div className="flex flex-col gap-1.5 text-sm text-text-muted">
           <span className="flex items-center gap-1.5">
-            <MapPin className="w-3.5 h-3.5 shrink-0" />
+            <MapPin className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
             {venue.neighborhood}
           </span>
           {venue.address && (
-            <p className="text-xs text-text-muted/70 text-balance">
+            <p className="text-xs text-text-subtle text-balance">
               {venue.address}
             </p>
           )}

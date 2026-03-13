@@ -28,7 +28,7 @@ export default function LiveBadge({
   if (live) {
     return (
       <div className="absolute top-6.5 right-4 flex items-center gap-1.5">
-        <span className="w-2 h-2 rounded-full bg-live animate-pulse-live" />
+        <span className="w-2 h-2 rounded-full bg-live animate-pulse-live" aria-hidden="true" />
         <span className="text-xs font-medium text-live uppercase tracking-wider">
           Live Now
         </span>
@@ -38,7 +38,7 @@ export default function LiveBadge({
 
   return (
     <div className="absolute top-6.5 right-4 flex items-center gap-1.5">
-      <span className="w-2 h-2 rounded-full bg-accent animate-pulse-live" />
+      <span className="w-2 h-2 rounded-full bg-accent animate-pulse-live" aria-hidden="true" />
       <span className="text-xs font-medium text-accent/70 uppercase tracking-wider">
         Featured
       </span>

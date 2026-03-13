@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
+    <main className="min-h-screen flex items-center justify-center px-4">
       <div className="text-center">
         <h1 className="font-serif text-6xl text-accent mb-4">404</h1>
         <p className="text-text text-xl mb-2">Wrong club</p>
@@ -16,6 +16,6 @@ export default function NotFound() {
           Find live jazz
         </Link>
       </div>
-    </div>
+    </main>
   );
 }

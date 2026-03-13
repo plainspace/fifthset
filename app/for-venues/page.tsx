@@ -124,7 +124,7 @@ export default function ForVenuesPage() {
               {/* Full background image */}
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=600&h=800&fit=crop"
+                src="https://www.bluenotejazz.com/nyc/wp-content/uploads/sites/2/2025/07/Blue-Note-Jazz_NYC_featured_1200x630.jpg"
                 alt="Jazz club interior with warm lighting and intimate stage"
                 className="absolute inset-0 w-full h-full object-cover"
               />

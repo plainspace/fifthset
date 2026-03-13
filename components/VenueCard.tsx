@@ -1,4 +1,3 @@
-import Image from 'next/image';
 import Link from 'next/link';
 import { MapPin, Star } from 'lucide-react';
 import { Venue } from '@/lib/types';
@@ -20,51 +19,6 @@ export default function VenueCard({
 }: VenueCardProps) {
   const isFeatured =
     venue.sponsor_tier === 'marquee' || venue.sponsor_tier === 'spotlight';
-
-  if (venue.photo_url) {
-    return (
-      <Link
-        href={`/${citySlug}/venues/${venue.slug}`}
-        className={cn(
-          'group relative rounded-lg overflow-hidden card-glow transition-all h-56',
-          isFeatured && 'featured-border',
-        )}
-      >
-        <Image
-          src={venue.photo_url}
-          alt={venue.name}
-          fill
-          className="object-cover group-hover:scale-105 transition-transform duration-300"
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-        />
-        <div className="absolute inset-0 bg-black/30" />
-        <div className="absolute inset-x-2.5 bottom-2.5 z-10 rounded-lg bg-white/10 backdrop-blur-xl border border-white/20 p-4">
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2 min-w-0">
-              <h3 className="font-serif text-base text-white truncate group-hover:text-accent transition-colors">
-                {venue.name}
-              </h3>
-              {isFeatured && (
-                <Star className="w-3.5 h-3.5 text-accent fill-accent shrink-0" />
-              )}
-            </div>
-            <StarButton type="venue" id={venue.id} initialStarred={starred} />
-          </div>
-          <div className="flex items-center justify-between gap-2 mt-1.5">
-            <span className="flex items-center gap-1.5 text-sm text-white/60">
-              <MapPin className="w-3.5 h-3.5 shrink-0" />
-              {venue.neighborhood}
-            </span>
-            {eventCount !== undefined && (
-              <span className="text-xs text-white/50">
-                {eventCount} {eventCount === 1 ? 'show' : 'shows'}
-              </span>
-            )}
-          </div>
-        </div>
-      </Link>
-    );
-  }
 
   return (
     <Link

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
-import { MapPin, Menu, X, ChevronDown, Music } from "lucide-react";
+import { MapPin, Menu, X, ChevronDown, Music, Star } from "lucide-react";
 import { cities } from "@/lib/cities";
 import { cn } from "@/lib/utils";
 import Search from "@/components/Search";
@@ -128,6 +128,21 @@ export default function Nav() {
               <span className="hidden lg:inline">Map</span>
             </Link>
 
+            {/* Saved link */}
+            <Link
+              href="/saved"
+              title="Saved"
+              className={cn(
+                "flex items-center gap-1.5 text-sm transition-colors shrink-0",
+                pathname === "/saved"
+                  ? "text-accent"
+                  : "text-text-muted hover:text-text"
+              )}
+            >
+              <Star className="w-4 h-4" />
+              <span className="hidden lg:inline">Saved</span>
+            </Link>
+
             <UserMenu />
           </div>
 
@@ -207,6 +222,14 @@ export default function Nav() {
             >
               <MapPin className="w-4 h-4" />
               Map View
+            </Link>
+            <Link
+              href="/saved"
+              onClick={() => setMobileOpen(false)}
+              className="flex items-center gap-2 text-text-muted hover:text-text py-2"
+            >
+              <Star className="w-4 h-4" />
+              Saved
             </Link>
 
             <div className="pt-2 border-t border-border">

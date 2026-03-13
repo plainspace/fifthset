@@ -3,15 +3,15 @@ import { slugify } from "../lib/utils";
 
 // Area code to region mapping
 const AREA_MAP: Record<string, string> = {
-  MT: "manhattan",
-  BK: "brooklyn",
-  BX: "bronx",
-  QN: "queens",
-  SI: "staten-island",
-  NJ: "new-jersey",
-  CT: "connecticut",
-  WC: "westchester",
-  LI: "long-island",
+  MT: "Manhattan",
+  BK: "Brooklyn",
+  BX: "Bronx",
+  QN: "Queens",
+  SI: "Staten Island",
+  NJ: "New Jersey",
+  CT: "Connecticut",
+  WC: "Westchester",
+  LI: "Long Island",
 };
 
 interface ScrapedEvent {
@@ -120,9 +120,9 @@ export async function scrapeJazzNYC(): Promise<ScrapedEvent[]> {
     const { start, end } = parseTime(timeStr);
     const region = AREA_MAP[areaCode] || areaCode.toLowerCase();
 
-    const venueName = venueCell.text().trim();
+    const venueName = venueCell.text().replace(/\u00a0/g, " ").trim();
     const venueLink = venueCell.find("a").attr("href");
-    const artistName = artistCell.text().trim();
+    const artistName = artistCell.text().replace(/\u00a0/g, " ").trim();
     const artistLink = artistCell.find("a").attr("href");
 
     if (!venueName || !artistName) return;

@@ -304,18 +304,21 @@ export async function getArtistEvents(
   return rows.map((e) => mapEventRow(e, citySlug));
 }
 
-// User: toggle favorite venue
+// User: toggle favorite (venue or event)
 export async function toggleFavorite(
   supabase: SupabaseClient,
   userId: string,
-  venueId: string
+  { venueId, eventId }: { venueId?: string; eventId?: string }
 ): Promise<boolean> {
+  const column = venueId ? "venue_id" : "event_id";
+  const value = venueId || eventId;
+
   const { data: existing } = await supabase
     .from("user_favorites")
     .select("id")
     .eq("user_id", userId)
-    .eq("venue_id", venueId)
-    .single();
+    .eq(column, value!)
+    .maybeSingle();
 
   if (existing) {
     await supabase.from("user_favorites").delete().eq("id", existing.id);
@@ -323,22 +326,100 @@ export async function toggleFavorite(
   } else {
     await supabase
       .from("user_favorites")
-      .insert({ user_id: userId, venue_id: venueId });
+      .insert({ user_id: userId, [column]: value });
     return true;
   }
 }
 
 // User: get favorite venue IDs
-export async function getFavorites(
+export async function getFavoriteVenueIds(
   supabase: SupabaseClient,
   userId: string
 ): Promise<string[]> {
   const { data } = await supabase
     .from("user_favorites")
     .select("venue_id")
-    .eq("user_id", userId);
+    .eq("user_id", userId)
+    .not("venue_id", "is", null);
 
   return (data || []).map((f: { venue_id: string }) => f.venue_id);
+}
+
+// User: get favorite event IDs
+export async function getFavoriteEventIds(
+  supabase: SupabaseClient,
+  userId: string
+): Promise<string[]> {
+  const { data } = await supabase
+    .from("user_favorites")
+    .select("event_id")
+    .eq("user_id", userId)
+    .not("event_id", "is", null);
+
+  return (data || []).map((f: { event_id: string }) => f.event_id);
+}
+
+// User: get favorite events with full objects
+export async function getFavoriteEvents(
+  supabase: SupabaseClient,
+  userId: string
+): Promise<Event[]> {
+  const { data: favs } = await supabase
+    .from("user_favorites")
+    .select("event_id")
+    .eq("user_id", userId)
+    .not("event_id", "is", null);
+
+  if (!favs || favs.length === 0) return [];
+
+  const eventIds = favs.map((f: { event_id: string }) => f.event_id);
+
+  const { data, error } = await supabase
+    .from("events")
+    .select(`
+      *,
+      venues ( *, cities ( slug ) ),
+      artists ( * )
+    `)
+    .in("id", eventIds)
+    .order("date")
+    .order("start_time");
+
+  if (error || !data) return [];
+
+  const rows = data as unknown as (EventRow & { venues: DbVenue & { cities: { slug: string } } })[];
+  return rows.map((e) => mapEventRow(e, (e.venues as unknown as { cities: { slug: string } }).cities?.slug || ""));
+}
+
+// User: get favorite venues with full objects
+export async function getFavoriteVenues(
+  supabase: SupabaseClient,
+  userId: string
+): Promise<Venue[]> {
+  const { data: favs } = await supabase
+    .from("user_favorites")
+    .select("venue_id")
+    .eq("user_id", userId)
+    .not("venue_id", "is", null);
+
+  if (!favs || favs.length === 0) return [];
+
+  const venueIds = favs.map((f: { venue_id: string }) => f.venue_id);
+
+  const { data, error } = await supabase
+    .from("venues")
+    .select(`
+      *,
+      cities ( slug ),
+      regions ( slug, name )
+    `)
+    .in("id", venueIds)
+    .order("name");
+
+  if (error || !data) return [];
+
+  const rows = data as unknown as VenueRow[];
+  return rows.map((v) => mapVenueRow(v, v.cities.slug));
 }
 
 // User: save preferences

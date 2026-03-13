@@ -51,7 +51,7 @@ export default function LoginPage() {
   }
 
   const inputClass =
-    "w-full bg-surface border border-border rounded-lg px-4 py-3 text-text placeholder:text-text-muted/50 focus:outline-none focus:border-accent transition-colors";
+    "w-full bg-surface border border-border rounded-lg px-4 py-3 text-text placeholder:text-text-muted/50 focus:outline-2 focus:outline-accent focus:outline-offset-[-1px] transition-colors";
 
   return (
     <main className="min-h-screen flex items-center justify-center px-4">

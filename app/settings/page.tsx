@@ -104,7 +104,7 @@ export default function SettingsPage() {
   }
 
   const selectClass =
-    "w-full bg-bg border border-border rounded-lg px-4 py-3 text-text focus:outline-none focus:border-accent transition-colors appearance-none cursor-pointer";
+    "w-full bg-bg border border-border rounded-lg px-4 py-3 text-text focus:outline-2 focus:outline-accent focus:outline-offset-[-1px] transition-colors appearance-none cursor-pointer";
 
   return (
     <main className="min-h-screen flex items-center justify-center px-4 py-16">

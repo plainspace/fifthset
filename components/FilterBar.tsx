@@ -30,7 +30,7 @@ export default function FilterBar({
   return (
     <div className="space-y-3">
       {/* Region filters */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+      <div className="flex items-center gap-2 overflow-x-auto py-1 scrollbar-none">
         <span className="text-xs uppercase tracking-wider text-text-muted shrink-0">
           Area
         </span>
@@ -68,7 +68,7 @@ export default function FilterBar({
       </div>
 
       {/* Time of day filters */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+      <div className="flex items-center gap-2 overflow-x-auto py-1 scrollbar-none">
         <span className="text-xs uppercase tracking-wider text-text-muted shrink-0">
           Time
         </span>

@@ -5,7 +5,7 @@ import { Send, Music, MapPin, Clock, CheckCircle } from "lucide-react";
 import DatePicker from "./DatePicker";
 
 const INPUT_CLASS =
-  "w-full rounded-lg bg-bg border border-border px-4 py-2.5 text-sm text-text placeholder:text-text-muted/50 focus:outline-none focus:border-accent transition-colors";
+  "w-full rounded-lg bg-bg border border-border px-4 py-2.5 text-sm text-text placeholder:text-text-muted/50 focus:outline-2 focus:outline-accent focus:outline-offset-[-1px] transition-colors";
 
 interface VenueSuggestion {
   id: string;

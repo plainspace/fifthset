@@ -71,7 +71,7 @@ export default function DatePicker({
           <button
             type="button"
             id={id}
-            className="w-full rounded-lg bg-bg border border-border px-4 py-2.5 text-sm text-left focus:outline-none focus:border-accent transition-colors flex items-center justify-between"
+            className="w-full rounded-lg bg-bg border border-border px-4 py-2.5 text-sm text-left focus:outline-2 focus:outline-accent focus:outline-offset-[-1px] transition-colors flex items-center justify-between"
           >
             <span className={selected ? "text-text" : "text-text-muted/50"}>
               {selected ? formatDisplay(selected) : "Select a date"}

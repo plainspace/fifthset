@@ -29,7 +29,7 @@ interface EditState {
 }
 
 const INPUT_CLASS =
-  "w-full rounded-lg bg-bg border border-border px-3 py-2 text-sm text-text placeholder:text-text-muted/50 focus:outline-none focus:border-accent transition-colors";
+  "w-full rounded-lg bg-bg border border-border px-3 py-2 text-sm text-text placeholder:text-text-muted/50 focus:outline-2 focus:outline-accent focus:outline-offset-[-1px] transition-colors";
 
 const TABS: { label: string; value: Status }[] = [
   { label: "Pending", value: "pending" },

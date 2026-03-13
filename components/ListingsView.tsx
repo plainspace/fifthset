@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { Music } from 'lucide-react';
 import { City, Event, TimeOfDay } from '@/lib/types';
 import { getTimeOfDay } from '@/lib/utils';
@@ -23,8 +23,26 @@ export default function ListingsView({
   subtitle,
   showLabel,
 }: ListingsViewProps) {
-  const [activeRegion, setActiveRegion] = useState<string | undefined>();
-  const [activeTime, setActiveTime] = useState<TimeOfDay | undefined>();
+  const [activeRegions, setActiveRegions] = useState<Set<string>>(new Set());
+  const [activeTimes, setActiveTimes] = useState<Set<TimeOfDay>>(new Set());
+
+  const toggleRegion = useCallback((region: string) => {
+    setActiveRegions((prev) => {
+      const next = new Set(prev);
+      if (next.has(region)) next.delete(region);
+      else next.add(region);
+      return next;
+    });
+  }, []);
+
+  const toggleTime = useCallback((time: TimeOfDay) => {
+    setActiveTimes((prev) => {
+      const next = new Set(prev);
+      if (next.has(time)) next.delete(time);
+      else next.add(time);
+      return next;
+    });
+  }, []);
 
   const featuredVenues = useMemo(() => {
     const seen = new Set<string>();
@@ -40,8 +58,8 @@ export default function ListingsView({
 
   const filteredEvents = useMemo(() => {
     return events
-      .filter((e) => !activeRegion || e.venue.region === activeRegion)
-      .filter((e) => !activeTime || getTimeOfDay(e.start_time) === activeTime)
+      .filter((e) => activeRegions.size === 0 || activeRegions.has(e.venue.region))
+      .filter((e) => activeTimes.size === 0 || activeTimes.has(getTimeOfDay(e.start_time)))
       .sort((a, b) => {
         if (a.is_boosted !== b.is_boosted) return a.is_boosted ? -1 : 1;
         const aFeatured = a.venue.sponsor_tier !== 'free';
@@ -49,7 +67,7 @@ export default function ListingsView({
         if (aFeatured !== bFeatured) return aFeatured ? -1 : 1;
         return a.start_time.localeCompare(b.start_time);
       });
-  }, [events, activeRegion, activeTime]);
+  }, [events, activeRegions, activeTimes]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
@@ -68,10 +86,10 @@ export default function ListingsView({
       <div className="mb-8">
         <FilterBar
           city={city}
-          activeRegion={activeRegion}
-          activeTime={activeTime}
-          onRegionChange={setActiveRegion}
-          onTimeChange={setActiveTime}
+          activeRegions={activeRegions}
+          activeTimes={activeTimes}
+          onRegionToggle={toggleRegion}
+          onTimeToggle={toggleTime}
         />
       </div>
 

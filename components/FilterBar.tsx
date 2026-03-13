@@ -5,10 +5,10 @@ import { City, TimeOfDay } from "@/lib/types";
 
 interface FilterBarProps {
   city: City;
-  activeRegion?: string;
-  activeTime?: TimeOfDay;
-  onRegionChange: (region?: string) => void;
-  onTimeChange: (time?: TimeOfDay) => void;
+  activeRegions: Set<string>;
+  activeTimes: Set<TimeOfDay>;
+  onRegionToggle: (region: string) => void;
+  onTimeToggle: (time: TimeOfDay) => void;
 }
 
 const timeFilters: { label: string; value: TimeOfDay }[] = [
@@ -19,11 +19,14 @@ const timeFilters: { label: string; value: TimeOfDay }[] = [
 
 export default function FilterBar({
   city,
-  activeRegion,
-  activeTime,
-  onRegionChange,
-  onTimeChange,
+  activeRegions,
+  activeTimes,
+  onRegionToggle,
+  onTimeToggle,
 }: FilterBarProps) {
+  const allRegions = activeRegions.size === 0;
+  const allTimes = activeTimes.size === 0;
+
   return (
     <div className="space-y-3">
       {/* Region filters */}
@@ -32,11 +35,16 @@ export default function FilterBar({
           Area
         </span>
         <button
-          onClick={() => onRegionChange(undefined)}
+          onClick={() => {
+            if (!allRegions) {
+              // Clear all selections to go back to "All"
+              activeRegions.forEach((r) => onRegionToggle(r));
+            }
+          }}
           className={cn(
             "filter-pill px-3 py-1.5 text-sm rounded-full shrink-0 transition-colors",
-            !activeRegion
-              ? "bg-accent text-bg font-medium"
+            allRegions
+              ? "bg-accent text-bg font-medium hover:brightness-110"
               : "bg-surface text-text-muted hover:text-text"
           )}
         >
@@ -45,15 +53,11 @@ export default function FilterBar({
         {city.regions.map((region) => (
           <button
             key={region.slug}
-            onClick={() =>
-              onRegionChange(
-                activeRegion === region.slug ? undefined : region.slug
-              )
-            }
+            onClick={() => onRegionToggle(region.slug)}
             className={cn(
               "filter-pill px-3 py-1.5 text-sm rounded-full shrink-0 transition-colors",
-              activeRegion === region.slug
-                ? "bg-accent text-bg font-medium"
+              activeRegions.has(region.slug)
+                ? "bg-accent text-bg font-medium hover:brightness-110"
                 : "bg-surface text-text-muted hover:text-text"
             )}
           >
@@ -68,11 +72,15 @@ export default function FilterBar({
           Time
         </span>
         <button
-          onClick={() => onTimeChange(undefined)}
+          onClick={() => {
+            if (!allTimes) {
+              activeTimes.forEach((t) => onTimeToggle(t));
+            }
+          }}
           className={cn(
             "filter-pill px-3 py-1.5 text-sm rounded-full shrink-0 transition-colors",
-            !activeTime
-              ? "bg-accent text-bg font-medium"
+            allTimes
+              ? "bg-accent text-bg font-medium hover:brightness-110"
               : "bg-surface text-text-muted hover:text-text"
           )}
         >
@@ -81,15 +89,11 @@ export default function FilterBar({
         {timeFilters.map((filter) => (
           <button
             key={filter.value}
-            onClick={() =>
-              onTimeChange(
-                activeTime === filter.value ? undefined : filter.value
-              )
-            }
+            onClick={() => onTimeToggle(filter.value)}
             className={cn(
               "filter-pill px-3 py-1.5 text-sm rounded-full shrink-0 transition-colors",
-              activeTime === filter.value
-                ? "bg-accent text-bg font-medium"
+              activeTimes.has(filter.value)
+                ? "bg-accent text-bg font-medium hover:brightness-110"
                 : "bg-surface text-text-muted hover:text-text"
             )}
           >

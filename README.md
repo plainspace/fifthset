@@ -53,18 +53,18 @@ Open [http://localhost:3006](http://localhost:3006).
 
 ## Git Hooks
 
-A pre-push hook runs `next lint` before allowing pushes, so lint errors never reach Vercel.
+A pre-push hook runs `next build` before allowing pushes, so lint and type errors never reach Vercel.
 
 The hook lives in `.git/hooks/pre-push` (local only, not committed). After a fresh clone, re-add it:
 
 ```bash
 cat > .git/hooks/pre-push << 'HOOK'
 #!/bin/sh
-echo "Running lint check before push..."
-npm run lint --prefix "$(git rev-parse --show-toplevel)"
+echo "Running build check before push..."
+npm run build --prefix "$(git rev-parse --show-toplevel)"
 if [ $? -ne 0 ]; then
   echo ""
-  echo "Lint failed. Fix errors before pushing."
+  echo "Build failed. Fix errors before pushing."
   exit 1
 fi
 HOOK

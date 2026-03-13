@@ -65,6 +65,21 @@ export const cities: City[] = [
     ],
   },
   {
+    id: "nj",
+    slug: "nj",
+    name: "New Jersey",
+    lat: 40.7357,
+    lng: -74.1724,
+    timezone: "America/New_York",
+    live: false,
+    regions: [
+      { slug: "jersey-city", name: "Jersey City", city_slug: "nj" },
+      { slug: "hoboken", name: "Hoboken", city_slug: "nj" },
+      { slug: "newark", name: "Newark", city_slug: "nj" },
+      { slug: "montclair", name: "Montclair", city_slug: "nj" },
+    ],
+  },
+  {
     id: "sf",
     slug: "sf",
     name: "San Francisco",

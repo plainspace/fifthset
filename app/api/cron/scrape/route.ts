@@ -14,47 +14,72 @@ export async function GET(request: NextRequest) {
 
   try {
     const { scrapeJazzNYC } = await import("@/scraper/scrape");
+    const { scrapeWWOZ } = await import("@/scraper/scrape-nola");
     const { normalizeScrapedData } = await import("@/scraper/normalize");
     const { pushToSupabase, cleanupStaleEvents } = await import(
       "@/scraper/push-to-db"
     );
 
-    // 1. Scrape
-    const scraped = await scrapeJazzNYC();
+    const results: Record<string, unknown> = {};
+    const allErrors: string[] = [];
 
-    // 2. Normalize + validate
-    const normalized = normalizeScrapedData(scraped, "nyc");
+    // --- NYC ---
+    try {
+      const scraped = await scrapeJazzNYC();
+      const normalized = normalizeScrapedData(scraped, "nyc");
+      const stats = await pushToSupabase(normalized, "nyc", "https://jazz-nyc.com/");
+      results.nyc = {
+        scraped: scraped.length,
+        normalized: normalized.events.length,
+        rejected: normalized.rejected.length,
+        inserted: stats.eventsInserted,
+        skipped: stats.eventsSkipped,
+      };
+      if (scraped.length === 0 || stats.errors.length > 10) {
+        allErrors.push(`NYC anomaly: ${scraped.length} scraped, ${stats.errors.length} errors`);
+      }
+      allErrors.push(...stats.errors);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      results.nyc = { error: msg };
+      allErrors.push(`NYC failed: ${msg}`);
+    }
 
-    // 3. Push to DB
-    const stats = await pushToSupabase(normalized, "nyc");
+    // --- NOLA ---
+    try {
+      const scraped = await scrapeWWOZ();
+      const normalized = normalizeScrapedData(scraped, "nola");
+      const stats = await pushToSupabase(normalized, "nola", "https://www.wwoz.org/livewire");
+      results.nola = {
+        scraped: scraped.length,
+        normalized: normalized.events.length,
+        rejected: normalized.rejected.length,
+        inserted: stats.eventsInserted,
+        skipped: stats.eventsSkipped,
+      };
+      // NOLA is new... don't alert on 0 events until selectors are tuned
+      if (stats.errors.length > 10) {
+        allErrors.push(`NOLA anomaly: ${stats.errors.length} errors`);
+      }
+      allErrors.push(...stats.errors);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      results.nola = { error: msg };
+      allErrors.push(`NOLA failed: ${msg}`);
+    }
 
-    // 4. Cleanup stale events
+    // Cleanup stale events (all cities)
     const cleaned = await cleanupStaleEvents();
 
-    // 5. Geocode new venues (skip in cron for now, it's too slow)
-    // Could be a separate cron on a less frequent schedule
-
     const summary = {
-      scraped: scraped.length,
-      normalized: normalized.events.length,
-      rejected: normalized.rejected.length,
-      inserted: stats.eventsInserted,
-      skipped: stats.eventsSkipped,
-      venuesUpserted: stats.venuesUpserted,
-      artistsUpserted: stats.artistsUpserted,
+      ...results,
       cleaned,
-      errors: stats.errors.length,
+      errors: allErrors.length,
       timestamp: new Date().toISOString(),
     };
 
-    // 6. Alert on anomalies
-    const isAnomaly =
-      scraped.length === 0 ||
-      normalized.rejected.length > normalized.events.length * 0.5 ||
-      stats.errors.length > 10;
-
-    if (isAnomaly) {
-      await sendAlert(summary, stats.errors);
+    if (allErrors.length > 0) {
+      await sendAlert(summary, allErrors);
     }
 
     return NextResponse.json(summary);

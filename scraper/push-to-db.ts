@@ -11,7 +11,8 @@ export interface PushStats {
 
 export async function pushToSupabase(
   data: NormalizedData,
-  citySlug: string
+  citySlug: string,
+  sourceUrl?: string
 ): Promise<PushStats> {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -149,7 +150,7 @@ export async function pushToSupabase(
       date: event.date,
       start_time: event.start_time,
       end_time: event.end_time || null,
-      source_url: "https://jazz-nyc.com/",
+      source_url: sourceUrl || null,
     });
 
     if (error) {

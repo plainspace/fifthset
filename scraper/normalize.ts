@@ -44,8 +44,8 @@ export interface NormalizedData {
 
 function cleanText(text: string): string {
   return text
-    .replace(/\u00a0/g, " ") // non-breaking spaces
-    .replace(/\s+/g, " ") // collapse multiple spaces
+    .replace(/[\u00a0\u2000-\u200f\u2028-\u202f\u205f\u3000\ufeff]/g, " ")
+    .replace(/\s+/g, " ")
     .trim();
 }
 

@@ -94,10 +94,16 @@ async function queryGooglePlaces(
         body: JSON.stringify({ textQuery: query }),
       }
     );
-    if (!response.ok) return null;
+    if (!response.ok) {
+      console.error(`  Google Places HTTP ${response.status}: ${await response.text()}`);
+      return null;
+    }
 
     const data: GooglePlacesResult = await response.json();
-    if (!data.places?.length) return null;
+    if (!data.places?.length) {
+      console.log(`  Google Places: no results for "${query}"`);
+      return null;
+    }
 
     const place = data.places[0];
     return {

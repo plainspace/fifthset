@@ -66,6 +66,12 @@ export default function Footer({ featuredVenues, citySlug }: FooterProps = {}) {
                 For Venues
               </Link>
               <Link
+                href="/submit"
+                className="block hover:text-text transition-colors"
+              >
+                Submit a Show
+              </Link>
+              <Link
                 href="/about"
                 className="block hover:text-text transition-colors"
               >

@@ -4,25 +4,16 @@ import * as cheerio from "cheerio";
 // WWOZ Livewire Scraper for New Orleans
 // Source: https://www.wwoz.org/livewire
 //
-// SELECTORS THAT MAY NEED ADJUSTMENT AFTER TESTING:
-//
-//   DATE_HEADING_SELECTOR  ... the element containing the date for a group of events
-//   EVENT_ROW_SELECTOR     ... each individual event listing
-//   VENUE_SELECTOR         ... venue name within an event row
-//   ARTIST_SELECTOR        ... artist/band name within an event row
-//   TIME_SELECTOR          ... showtime within an event row
-//   GENRE_SELECTOR         ... genre tag (optional, not used for output)
+// Structure: Page is organized by VENUE, not by date.
+//   .livewire-listing          = venue container
+//   .panel-heading .panel-title a = venue name (href=/organizations/slug)
+//   .panel-body .row           = individual event within that venue
+//   .row .calendar-info p.truncate a = artist name (href=/events/id)
+//   .row .calendar-info p:last  = "Friday, March 13 at 3:00pm"
+//   .row .calendar-page .month + .day = date parts (Mar / 13)
 //
 // Run with: npx tsx scraper/scrape-nola.ts
 // =============================================================================
-
-// --- Selectors (tune these after inspecting the live page) ---
-
-const DATE_HEADING_SELECTOR = ".livewire-date, h3.date-header, .views-group-header";
-const EVENT_ROW_SELECTOR = ".livewire-listing, .views-row, .livewire_listing";
-const VENUE_SELECTOR = ".livewire-venue, .venue-name, .views-field-venue";
-const ARTIST_SELECTOR = ".livewire-artist, .artist-name, .views-field-artist";
-const TIME_SELECTOR = ".livewire-time, .event-time, .views-field-time";
 
 // --- Region mapping for NOLA neighborhoods ---
 
@@ -223,53 +214,72 @@ export async function scrapeWWOZ(): Promise<ScrapedEvent[]> {
   const $ = cheerio.load(html);
   const events: ScrapedEvent[] = [];
 
-  // Strategy 1: Events grouped under date headings
-  // Each date heading is followed by a set of event rows
-  let currentDate = "";
+  // WWOZ structure: .livewire-listing contains venue panels,
+  // each panel has .panel-heading (venue) and .panel-body with .row (events)
+  $(".livewire-listing .panel.panel-default").each((_, panel) => {
+    const $panel = $(panel);
 
-  // Try to find date-grouped structure first
-  const dateHeadings = $(DATE_HEADING_SELECTOR);
+    // Venue from panel heading
+    const venueLink = $panel.find(".panel-heading .panel-title a");
+    const venueName = venueLink.text().replace(/\u00a0/g, " ").trim();
+    const venueHref = venueLink.attr("href");
+    const venueUrl = venueHref
+      ? `https://www.wwoz.org${venueHref}`
+      : undefined;
 
-  if (dateHeadings.length > 0) {
-    dateHeadings.each((_, heading) => {
-      const dateText = $(heading).text();
-      // Also check for a datetime attribute
-      const dateAttr = $(heading).attr("datetime") || $(heading).attr("data-date") || "";
-      currentDate = dateAttr ? parseDateHeading(dateAttr) : parseDateHeading(dateText);
+    if (!venueName) return;
 
-      if (!currentDate) return;
+    const region = lookupRegion(venueName);
 
-      // Get all event rows following this heading until the next heading
-      const eventRows = $(heading).nextUntil(DATE_HEADING_SELECTOR, EVENT_ROW_SELECTOR);
+    // Each .row in .panel-body is an event at this venue
+    $panel.find(".panel-body .row").each((_, row) => {
+      const $row = $(row);
 
-      eventRows.each((_, row) => {
-        const event = parseEventRow($, row, currentDate);
-        if (event) events.push(event);
-      });
-    });
-  }
+      // Artist from the truncated link
+      const artistLink = $row.find(".calendar-info p.truncate a");
+      const artistName = artistLink.text().replace(/\u00a0/g, " ").replace(/&amp;/g, "&").trim();
+      const artistHref = artistLink.attr("href");
+      const artistUrl = artistHref
+        ? `https://www.wwoz.org${artistHref}`
+        : undefined;
 
-  // Strategy 2: If no date headings found, try a flat list where each row has its own date
-  if (events.length === 0) {
-    $(EVENT_ROW_SELECTOR).each((_, row) => {
-      // Look for a date within the row itself
-      const dateEl = $(row).find(".date, .event-date, time");
-      const dateText = dateEl.attr("datetime") || dateEl.text();
-      const date = parseDateHeading(dateText);
+      if (!artistName) return;
 
+      // Date from .calendar-page month + day
+      const monthText = $row.find(".calendar-page .month").text().trim();
+      const dayText = $row.find(".calendar-page .day").text().trim();
+
+      // Time from the info paragraph (e.g. "Friday, March 13 at 3:00pm")
+      // It's the last <p> inside .calendar-info (not the .truncate one)
+      const infoParagraphs = $row.find(".calendar-info p:not(.truncate)");
+      const infoText = infoParagraphs.text().trim();
+
+      // Build date: month abbreviation + day + infer year
+      const date = buildDate(monthText, dayText, infoText);
       if (!date) return;
 
-      const event = parseEventRow($, row, date);
-      if (event) events.push(event);
-    });
-  }
+      // Extract time from info text: "Friday, March 13 at 3:00pm"
+      const timeMatch = infoText.match(/at\s+(.+)$/i);
+      const timeStr = timeMatch ? timeMatch[1] : "";
+      const { start, end } = parseTime(timeStr);
 
-  // Strategy 3: If still nothing, try parsing a table structure
+      events.push({
+        date,
+        startTime: start,
+        endTime: end,
+        region,
+        venueName,
+        venueUrl,
+        artistName,
+        artistUrl,
+      });
+    });
+  });
+
   if (events.length === 0) {
     console.warn(
-      "No events found with primary selectors. " +
-      "The WWOZ livewire HTML structure may have changed. " +
-      "Inspect the page and update selectors at the top of scrape-nola.ts."
+      "No events found. The WWOZ livewire HTML structure may have changed. " +
+      "Run: npx tsx scraper/inspect-wwoz.ts to debug."
     );
   }
 
@@ -277,48 +287,40 @@ export async function scrapeWWOZ(): Promise<ScrapedEvent[]> {
   return events;
 }
 
-function parseEventRow(
-  $: cheerio.CheerioAPI,
-  row: cheerio.Element,
-  date: string
-): ScrapedEvent | null {
-  const $row = $(row);
+function buildDate(monthAbbrev: string, day: string, infoText: string): string {
+  if (!monthAbbrev || !day) return "";
 
-  // Extract venue
-  const venueEl = $row.find(VENUE_SELECTOR);
-  const venueName = venueEl.text().replace(/\u00a0/g, " ").trim();
-  const venueLink = venueEl.find("a").attr("href") || venueEl.closest("a").attr("href");
-  const venueUrl = venueLink
-    ? venueLink.startsWith("http") ? venueLink : `https://www.wwoz.org${venueLink}`
-    : undefined;
+  // Try to get full month name from info text (e.g. "Friday, March 13 at 3:00pm")
+  const fullMonthMatch = infoText.match(
+    /(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday),?\s+(\w+)\s+\d/i
+  );
 
-  // Extract artist
-  const artistEl = $row.find(ARTIST_SELECTOR);
-  const artistName = artistEl.text().replace(/\u00a0/g, " ").trim();
-  const artistLink = artistEl.find("a").attr("href") || artistEl.closest("a").attr("href");
-  const artistUrl = artistLink
-    ? artistLink.startsWith("http") ? artistLink : `https://www.wwoz.org${artistLink}`
-    : undefined;
+  let monthNum: string | null = null;
 
-  // Extract time
-  const timeEl = $row.find(TIME_SELECTOR);
-  const timeText = timeEl.text().trim();
+  if (fullMonthMatch) {
+    monthNum = monthToNum(fullMonthMatch[1]);
+  }
 
-  if (!venueName || !artistName) return null;
+  // Fall back to abbreviation
+  if (!monthNum) {
+    const ABBREV_MAP: Record<string, string> = {
+      jan: "01", feb: "02", mar: "03", apr: "04",
+      may: "05", jun: "06", jul: "07", aug: "08",
+      sep: "09", oct: "10", nov: "11", dec: "12",
+    };
+    monthNum = ABBREV_MAP[monthAbbrev.toLowerCase().slice(0, 3)] || null;
+  }
 
-  const { start, end } = parseTime(timeText);
-  const region = lookupRegion(venueName);
+  if (!monthNum) return "";
 
-  return {
-    date,
-    startTime: start,
-    endTime: end,
-    region,
-    venueName,
-    venueUrl,
-    artistName,
-    artistUrl,
-  };
+  // Infer year: use current year, or next year if month is in the past
+  const now = new Date();
+  const currentMonth = now.getMonth() + 1;
+  const currentYear = now.getFullYear();
+  const m = parseInt(monthNum, 10);
+  const year = m < currentMonth - 1 ? currentYear + 1 : currentYear;
+
+  return `${year}-${monthNum}-${day.padStart(2, "0")}`;
 }
 
 // --- CLI runner ---

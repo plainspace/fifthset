@@ -57,21 +57,33 @@ export default function Nav() {
                 <>
                   <div className="fixed inset-0" onClick={() => setCityOpen(false)} />
                   <div className="absolute top-full mt-2 right-0 bg-surface border border-border rounded-lg shadow-xl py-1 min-w-[180px]">
-                    {cities.map((city) => (
-                      <Link
-                        key={city.slug}
-                        href={`/${city.slug}`}
-                        onClick={() => setCityOpen(false)}
-                        className={cn(
-                          "block px-4 py-2 text-sm transition-colors",
-                          city.slug === currentCity.slug
-                            ? "text-accent bg-surface-hover"
-                            : "text-text-muted hover:text-text hover:bg-surface-hover"
-                        )}
-                      >
-                        {city.name}
-                      </Link>
-                    ))}
+                    {cities.map((city) =>
+                      city.live ? (
+                        <Link
+                          key={city.slug}
+                          href={`/${city.slug}`}
+                          onClick={() => setCityOpen(false)}
+                          className={cn(
+                            "block px-4 py-2 text-sm transition-colors",
+                            city.slug === currentCity.slug
+                              ? "text-accent bg-surface-hover"
+                              : "text-text-muted hover:text-text hover:bg-surface-hover"
+                          )}
+                        >
+                          {city.name}
+                        </Link>
+                      ) : (
+                        <span
+                          key={city.slug}
+                          className="flex items-center justify-between px-4 py-2 text-sm text-text-muted/50 cursor-default"
+                        >
+                          {city.name}
+                          <span className="text-[10px] uppercase tracking-wider bg-surface-hover rounded px-1.5 py-0.5">
+                            Soon
+                          </span>
+                        </span>
+                      )
+                    )}
                   </div>
                 </>
               )}
@@ -164,21 +176,31 @@ export default function Nav() {
             <div className="space-y-2">
               <p className="text-xs uppercase tracking-wider text-text-muted">City</p>
               <div className="flex flex-wrap gap-2">
-                {cities.map((city) => (
-                  <Link
-                    key={city.slug}
-                    href={`/${city.slug}`}
-                    onClick={() => setMobileOpen(false)}
-                    className={cn(
-                      "px-3 py-1.5 text-sm rounded-full transition-colors",
-                      city.slug === currentCity.slug
-                        ? "bg-accent text-bg"
-                        : "bg-surface text-text-muted"
-                    )}
-                  >
-                    {city.name}
-                  </Link>
-                ))}
+                {cities.map((city) =>
+                  city.live ? (
+                    <Link
+                      key={city.slug}
+                      href={`/${city.slug}`}
+                      onClick={() => setMobileOpen(false)}
+                      className={cn(
+                        "px-3 py-1.5 text-sm rounded-full transition-colors",
+                        city.slug === currentCity.slug
+                          ? "bg-accent text-bg"
+                          : "bg-surface text-text-muted"
+                      )}
+                    >
+                      {city.name}
+                    </Link>
+                  ) : (
+                    <span
+                      key={city.slug}
+                      className="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-full bg-surface text-text-muted/50 cursor-default"
+                    >
+                      {city.name}
+                      <span className="text-[9px] uppercase tracking-wider">Soon</span>
+                    </span>
+                  )
+                )}
               </div>
             </div>
 

@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Playfair_Display, Inter, JetBrains_Mono } from "next/font/google";
+import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import JsonLd from "@/components/JsonLd";
 import { organizationSchema, websiteSchema } from "@/lib/jsonld";
 import "./globals.css";
@@ -91,6 +93,8 @@ export default function RootLayout({
       <body className="grain min-h-screen antialiased">
         <JsonLd data={[organizationSchema(), websiteSchema()]} />
         {children}
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );

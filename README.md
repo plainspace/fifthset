@@ -51,6 +51,26 @@ Open [http://localhost:3006](http://localhost:3006).
 | `npm run geocode` | Geocode venues missing coordinates |
 | `npm run enrich` | Enrich venue data (website, phone, photo) |
 
+## Git Hooks
+
+A pre-push hook runs `next lint` before allowing pushes, so lint errors never reach Vercel.
+
+The hook lives in `.git/hooks/pre-push` (local only, not committed). After a fresh clone, re-add it:
+
+```bash
+cat > .git/hooks/pre-push << 'HOOK'
+#!/bin/sh
+echo "Running lint check before push..."
+npm run lint --prefix "$(git rev-parse --show-toplevel)"
+if [ $? -ne 0 ]; then
+  echo ""
+  echo "Lint failed. Fix errors before pushing."
+  exit 1
+fi
+HOOK
+chmod +x .git/hooks/pre-push
+```
+
 ## Project Structure
 
 ```

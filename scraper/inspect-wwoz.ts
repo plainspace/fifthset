@@ -1,4 +1,5 @@
 import * as cheerio from "cheerio";
+import type { Element } from "domhandler";
 
 // Quick script to inspect WWOZ livewire HTML structure
 // Run: npx tsx scraper/inspect-wwoz.ts
@@ -101,7 +102,7 @@ async function inspect() {
 
 function logStructure(
   $: cheerio.CheerioAPI,
-  el: cheerio.Cheerio<cheerio.Element>,
+  el: cheerio.Cheerio<Element>,
   depth: number,
   maxDepth: number
 ) {

@@ -5,7 +5,7 @@ import { ExternalLink } from "lucide-react";
 import { getCityBySlug } from "@/lib/cities";
 import { createClient } from "@/lib/supabase/server";
 import { getArtistBySlug, getArtistEvents } from "@/lib/supabase/queries";
-import { getDateLabel } from "@/lib/utils";
+import { getDateLabel, formatDateFull } from "@/lib/utils";
 import { breadcrumbSchema } from "@/lib/jsonld";
 import JsonLd from "@/components/JsonLd";
 import EventCard from "@/components/EventCard";
@@ -102,8 +102,11 @@ export default async function ArtistDetailPage({
           <div className="space-y-8">
             {Object.entries(eventsByDate).map(([date, dateEvents]) => (
               <div key={date}>
-                <h3 className="text-sm uppercase tracking-wider text-text-muted mb-3">
-                  {getDateLabel(date)}
+                <h3 className="text-sm tracking-wider text-text-muted mb-3">
+                  {["Tonight", "Tomorrow"].includes(getDateLabel(date)) && (
+                    <span className="uppercase">{getDateLabel(date)} / </span>
+                  )}
+                  {formatDateFull(date)}
                 </h3>
                 <div className="space-y-3">
                   {dateEvents.map((event) => (

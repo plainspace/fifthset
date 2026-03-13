@@ -122,36 +122,17 @@ export async function pushToSupabase(
       continue;
     }
 
-    // Check for existing event (same venue, date, time, artist)
-    let query = supabase
-      .from("events")
-      .select("id")
-      .eq("venue_id", venueId)
-      .eq("date", event.date)
-      .eq("start_time", event.start_time);
-
-    // Handle nullable artist_id correctly
-    if (artistId) {
-      query = query.eq("artist_id", artistId);
-    } else {
-      query = query.is("artist_id", null);
-    }
-
-    const { data: existing } = await query.limit(1);
-
-    if (existing && existing.length > 0) {
-      stats.eventsSkipped++;
-      continue;
-    }
-
-    const { error } = await supabase.from("events").insert({
-      venue_id: venueId,
-      artist_id: artistId || null,
-      date: event.date,
-      start_time: event.start_time,
-      end_time: event.end_time || null,
-      source_url: sourceUrl || null,
-    });
+    const { error } = await supabase.from("events").upsert(
+      {
+        venue_id: venueId,
+        artist_id: artistId || null,
+        date: event.date,
+        start_time: event.start_time,
+        end_time: event.end_time || null,
+        source_url: sourceUrl || null,
+      },
+      { onConflict: "venue_id,artist_id,date,start_time" }
+    );
 
     if (error) {
       stats.errors.push(`Event insert failed: ${error.message}`);

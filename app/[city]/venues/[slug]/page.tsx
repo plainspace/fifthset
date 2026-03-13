@@ -6,7 +6,7 @@ import { ExternalLink, MapPin, Phone, Star, Clock } from 'lucide-react';
 import { getCityBySlug } from '@/lib/cities';
 import { createClient } from '@/lib/supabase/server';
 import { getVenueBySlug, getVenueEvents } from '@/lib/supabase/queries';
-import { formatTime, getDateLabel, cn } from '@/lib/utils';
+import { formatTime, getDateLabel, formatDateFull, cn } from '@/lib/utils';
 import { venueSchema, breadcrumbSchema } from '@/lib/jsonld';
 import JsonLd from '@/components/JsonLd';
 
@@ -191,8 +191,11 @@ export default async function VenueDetailPage({
           <div className="space-y-8">
             {Object.entries(eventsByDate).map(([date, dateEvents]) => (
               <div key={date}>
-                <h3 className="text-sm uppercase tracking-wider text-text-muted mb-3">
-                  {getDateLabel(date)}
+                <h3 className="text-sm tracking-wider text-text-muted mb-3">
+                  {["Tonight", "Tomorrow"].includes(getDateLabel(date)) && (
+                    <span className="uppercase">{getDateLabel(date)} / </span>
+                  )}
+                  {formatDateFull(date)}
                 </h3>
                 <div className="space-y-3">
                   {dateEvents.map((event) => (

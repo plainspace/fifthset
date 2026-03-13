@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { MapPin, Star, Music } from 'lucide-react';
 import Nav from '@/components/Nav';
 import Footer from '@/components/Footer';
 
@@ -105,6 +106,64 @@ export default function ForVenuesPage() {
                 </div>
               </div>
             ))}
+          </div>
+        </section>
+
+        {/* Featured preview */}
+        <section className="max-w-3xl mx-auto px-4 sm:px-6 pb-20">
+          <h2 className="font-serif text-2xl text-text text-center mb-3 text-balance">
+            Stand out in every listing
+          </h2>
+          <p className="text-text-muted text-center mb-10 max-w-lg mx-auto text-balance">
+            Featured venues get a premium card that catches the eye before
+            anything else on the page.
+          </p>
+
+          <div className="flex justify-center">
+            <div className="w-full max-w-sm rounded-lg bg-surface border-2 border-accent/40 overflow-hidden shadow-lg shadow-accent/5 relative">
+              {/* Featured badge */}
+              <div className="absolute top-3 right-3 z-10">
+                <span className="text-xs font-mono text-accent bg-accent/15 backdrop-blur-sm px-2.5 py-1 rounded-full border border-accent/20">
+                  Featured
+                </span>
+              </div>
+
+              {/* Venue photo */}
+              <div className="relative h-40 overflow-hidden">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=600&h=300&fit=crop"
+                  alt="Jazz club interior with warm lighting and intimate stage"
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-surface/80 to-transparent" />
+              </div>
+
+              {/* Card content */}
+              <div className="p-5 -mt-6 relative">
+                <div className="flex items-center gap-2">
+                  <h3 className="font-serif text-lg text-text">
+                    Blue Note NYC
+                  </h3>
+                  <Star className="w-3.5 h-3.5 text-accent fill-accent" />
+                </div>
+
+                <p className="flex items-center gap-1.5 text-sm text-text-muted mt-1.5">
+                  <Music className="w-3.5 h-3.5 text-accent shrink-0" />
+                  3 shows tonight
+                </p>
+
+                <div className="flex flex-col gap-1.5 mt-3 text-sm text-text-muted">
+                  <span className="flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5 shrink-0" />
+                    Greenwich Village
+                  </span>
+                  <p className="text-xs text-text-muted/70">
+                    131 W 3rd St, New York, NY
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 

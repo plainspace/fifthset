@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
+import Image from "next/image";
 import Link from "next/link";
 import { ExternalLink, MapPin, Phone, Star, Clock } from "lucide-react";
 import { getCityBySlug } from "@/lib/cities";
@@ -30,11 +31,13 @@ export async function generateMetadata({
       title,
       description,
       images: [
-        {
-          url: `/api/og?title=${encodeURIComponent(venue.name)}&subtitle=${encodeURIComponent(venue.neighborhood || city!.name)}&type=venue`,
-          width: 1200,
-          height: 630,
-        },
+        venue.photo_url
+          ? { url: venue.photo_url, width: 1200, height: 630 }
+          : {
+              url: `/api/og?title=${encodeURIComponent(venue.name)}&subtitle=${encodeURIComponent(venue.neighborhood || city!.name)}&type=venue`,
+              width: 1200,
+              height: 630,
+            },
       ],
     },
     alternates: {
@@ -80,7 +83,17 @@ export default async function VenueDetailPage({
         ])}
       />
       {/* Venue header */}
-      <div className={cn("bg-surface rounded-lg p-6 sm:p-8", isFeatured && "featured-border")}>
+      <div className={cn("bg-surface rounded-lg overflow-hidden", isFeatured && "featured-border")}>
+        {venue.photo_url && (
+          <Image
+            src={venue.photo_url}
+            alt={venue.name}
+            width={896}
+            height={200}
+            className="w-full h-[200px] object-cover"
+          />
+        )}
+        <div className="p-6 sm:p-8">
         <div className="flex items-start justify-between">
           <div>
             <div className="flex items-center gap-2">
@@ -115,6 +128,7 @@ export default async function VenueDetailPage({
               {venue.phone}
             </a>
           )}
+        </div>
         </div>
       </div>
 

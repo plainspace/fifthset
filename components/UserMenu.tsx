@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { LogOut, Settings } from "lucide-react";
-import { cn } from "@/lib/utils";
+
 import { createClient } from "@/lib/supabase/client";
 import { signOut } from "@/lib/supabase/auth";
 import type { User } from "@supabase/supabase-js";

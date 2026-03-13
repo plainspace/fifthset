@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "scrape": "tsx scraper/scrape.ts",
-    "geocode": "tsx scraper/geocode.ts"
+    "geocode": "tsx scraper/geocode.ts",
+    "enrich": "tsx scraper/enrich.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.5.0",

@@ -15,6 +15,23 @@ interface NominatimResult {
   };
 }
 
+interface GooglePlacesResult {
+  results: {
+    geometry: { location: { lat: number; lng: number } };
+    formatted_address: string;
+    name: string;
+  }[];
+  status: string;
+}
+
+interface GeocodeResult {
+  lat: number;
+  lng: number;
+  address: string;
+  neighborhood: string;
+  source: "nominatim" | "google" | null;
+}
+
 function buildAddress(addr: NominatimResult["address"]): string {
   if (!addr) return "";
   const parts: string[] = [];
@@ -41,6 +58,37 @@ async function queryNominatim(query: string): Promise<NominatimResult | null> {
   return results.length > 0 ? results[0] : null;
 }
 
+async function queryGooglePlaces(
+  venueName: string,
+  cityName: string
+): Promise<GeocodeResult | null> {
+  const apiKey = process.env.GOOGLE_PLACES_API_KEY;
+  if (!apiKey) return null;
+
+  const query = `${venueName} ${cityName}`;
+  const url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query)}&key=${apiKey}`;
+
+  try {
+    const response = await fetch(url);
+    if (!response.ok) return null;
+
+    const data: GooglePlacesResult = await response.json();
+    if (data.status !== "OK" || !data.results.length) return null;
+
+    const place = data.results[0];
+    return {
+      lat: place.geometry.location.lat,
+      lng: place.geometry.location.lng,
+      address: place.formatted_address,
+      neighborhood: "", // Google doesn't return neighborhood reliably
+      source: "google",
+    };
+  } catch (err) {
+    console.error(`  Google Places error: ${err}`);
+    return null;
+  }
+}
+
 // Strip embedded addresses from venue names like "Arturo's 106 W Houston St"
 function cleanVenueName(name: string): string {
   return name
@@ -55,26 +103,27 @@ function cleanVenueName(name: string): string {
 
 async function geocodeVenue(
   name: string,
-  region: string
-): Promise<{ lat: number; lng: number; address: string; neighborhood: string } | null> {
-  // Strategy 1: Full venue name + NYC
-  let result = await queryNominatim(`${name}, New York City, NY`);
+  region: string,
+  cityName: string = "New York City, NY"
+): Promise<GeocodeResult | null> {
+  // Strategy 1: Full venue name + city
+  let result = await queryNominatim(`${name}, ${cityName}`);
 
   // Strategy 2: If name has embedded address, try extracting it
   if (!result && /\d+\s+(W|E|N|S|West|East)\s+/i.test(name)) {
     const addrMatch = name.match(/(\d+\s+(?:W|E|N|S|West|East)\s+\S+(?:\s+\S+)?)/i);
     if (addrMatch) {
       await sleep(1100);
-      result = await queryNominatim(`${addrMatch[1]}, New York, NY`);
+      result = await queryNominatim(`${addrMatch[1]}, ${cityName}`);
     }
   }
 
-  // Strategy 3: Clean name (strip address from name) + NYC
+  // Strategy 3: Clean name (strip address from name) + city
   if (!result) {
     const cleaned = cleanVenueName(name);
     if (cleaned !== name && cleaned.length > 2) {
       await sleep(1100);
-      result = await queryNominatim(`${cleaned}, New York City, NY`);
+      result = await queryNominatim(`${cleaned}, ${cityName}`);
     }
   }
 
@@ -82,41 +131,63 @@ async function geocodeVenue(
   if (!result) {
     const cleaned = cleanVenueName(name);
     await sleep(1100);
-    result = await queryNominatim(`${cleaned} bar, Manhattan, New York`);
+    // Extract the main city name for borough-level queries
+    const mainCity = cityName.split(",")[0].trim();
+    result = await queryNominatim(`${cleaned} bar, ${mainCity}`);
   }
 
+  // Strategy 5: Try with borough/region
   if (!result) {
     const cleaned = cleanVenueName(name);
     const borough = region || "";
     if (borough) {
       await sleep(1100);
-      result = await queryNominatim(`${cleaned}, ${borough}, New York`);
+      const mainCity = cityName.split(",")[0].trim();
+      result = await queryNominatim(`${cleaned}, ${borough}, ${mainCity}`);
     }
   }
 
+  // Strategy 6: Try with "jazz" qualifier
   if (!result) {
     const cleaned = cleanVenueName(name);
     await sleep(1100);
-    result = await queryNominatim(`${cleaned} jazz, New York City`);
+    const mainCity = cityName.split(",")[0].trim();
+    result = await queryNominatim(`${cleaned} jazz, ${mainCity}`);
   }
 
+  // Strategy 7: First word + "jazz club"
   if (!result) {
     const firstName = cleanVenueName(name).split(/\s+/)[0];
     if (firstName.length > 3) {
       await sleep(1100);
-      result = await queryNominatim(`${firstName} jazz club, New York City`);
+      const mainCity = cityName.split(",")[0].trim();
+      result = await queryNominatim(`${firstName} jazz club, ${mainCity}`);
     }
   }
 
-  if (!result) return null;
+  // Nominatim succeeded
+  if (result) {
+    const addr = result.address;
+    return {
+      lat: parseFloat(result.lat),
+      lng: parseFloat(result.lon),
+      address: buildAddress(addr),
+      neighborhood: addr?.neighbourhood || addr?.suburb || region,
+      source: "nominatim",
+    };
+  }
 
-  const addr = result.address;
-  return {
-    lat: parseFloat(result.lat),
-    lng: parseFloat(result.lon),
-    address: buildAddress(addr),
-    neighborhood: addr?.neighbourhood || addr?.suburb || region,
-  };
+  // Fallback: Google Places Text Search (only if API key is configured)
+  const googleResult = await queryGooglePlaces(name, cityName);
+  if (googleResult) {
+    // Preserve the region as neighborhood since Google doesn't provide one
+    googleResult.neighborhood = region || "";
+    // Respect rate limiting... brief pause between providers
+    await sleep(500);
+    return googleResult;
+  }
+
+  return null;
 }
 
 async function sleep(ms: number) {
@@ -127,10 +198,12 @@ async function sleep(ms: number) {
 export async function geocodeNewVenues(supabaseUrl: string, serviceKey: string) {
   const supabase = createClient(supabaseUrl, serviceKey);
 
+  // Skip venues that already have coordinates or were manually geocoded
   const { data: venues, error } = await supabase
     .from("venues")
-    .select("id, name, slug, neighborhood, lat, lng")
+    .select("id, name, slug, neighborhood, lat, lng, geocode_source, city:cities(name)")
     .is("lat", null)
+    .neq("geocode_source", "manual")
     .order("name");
 
   if (error) throw error;
@@ -145,7 +218,20 @@ export async function geocodeNewVenues(supabaseUrl: string, serviceKey: string) 
   let failed = 0;
 
   for (const venue of venues) {
-    const result = await geocodeVenue(venue.name, venue.neighborhood || "");
+    // Resolve city name for geocoding queries
+    const CITY_GEOCODE_NAMES: Record<string, string> = {
+      "New York City": "New York City, NY",
+      "Chicago": "Chicago, IL",
+      "New Orleans": "New Orleans, LA",
+      "Los Angeles": "Los Angeles, CA",
+      "San Francisco": "San Francisco, CA",
+    };
+    const cityData = venue.city as { name: string } | null;
+    const cityName = cityData?.name
+      ? CITY_GEOCODE_NAMES[cityData.name] || `${cityData.name}`
+      : "New York City, NY";
+
+    const result = await geocodeVenue(venue.name, venue.neighborhood || "", cityName);
 
     if (result) {
       const { error: updateError } = await supabase
@@ -155,6 +241,7 @@ export async function geocodeNewVenues(supabaseUrl: string, serviceKey: string) 
           lng: result.lng,
           address: result.address,
           neighborhood: result.neighborhood,
+          geocode_source: result.source,
         })
         .eq("id", venue.id);
 
@@ -162,7 +249,7 @@ export async function geocodeNewVenues(supabaseUrl: string, serviceKey: string) 
         console.error(`  FAIL: ${venue.name} - ${updateError.message}`);
         failed++;
       } else {
-        console.log(`  OK: ${venue.name} → ${result.address} (${result.lat}, ${result.lng})`);
+        console.log(`  OK: ${venue.name} → ${result.address} [${result.source}] (${result.lat}, ${result.lng})`);
         success++;
       }
     } else {

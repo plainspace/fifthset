@@ -116,7 +116,7 @@ export default function ForVenuesPage() {
               <h2 className="font-serif text-xl text-text">Listed</h2>
               <p className="text-2xl font-mono text-accent mt-2">Free</p>
               <p className="text-sm text-text-muted mt-3 text-pretty">
-                You're probably already here. Every jazz venue in New York
+                You&apos;re probably already here. Every jazz venue in New York
                 appears on Fifth Set automatically.
               </p>
               <ul className="mt-6 space-y-2.5">
@@ -167,7 +167,7 @@ export default function ForVenuesPage() {
               Want to feature your venue?
             </h2>
             <p className="text-text-muted mt-3 max-w-md mx-auto text-balance">
-              Drop us a line. We'll get back to you within a day or two.
+              Drop us a line. We&apos;ll get back to you within a day or two.
             </p>
             <a
               href="mailto:venues@fifthset.live"

@@ -50,8 +50,19 @@ export default async function CityPage({ params }: { params: Promise<{ city: str
   if (!city) notFound();
 
   const today = getLocalDate(city.timezone);
+  const yesterday = getLocalDate(city.timezone, -1);
   const supabase = await createClient();
-  const events = await getEvents(supabase, city.slug, [today]);
+  const [todayEvents, yesterdayEvents] = await Promise.all([
+    getEvents(supabase, city.slug, [today]),
+    getEvents(supabase, city.slug, [yesterday]),
+  ]);
+  const lateNight = yesterdayEvents.filter((e) => {
+    if (!e.end_time) return false;
+    const [endH] = e.end_time.split(":").map(Number);
+    const [startH] = e.start_time.split(":").map(Number);
+    return endH < startH;
+  });
+  const events = [...lateNight, ...todayEvents];
 
   return (
     <>

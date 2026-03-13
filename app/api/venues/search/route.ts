@@ -18,12 +18,20 @@ export async function GET(request: NextRequest) {
 
   let query = supabase
     .from("venues")
-    .select("id, name, city_slug")
+    .select("id, name, city_id")
     .ilike("name", pattern)
     .limit(8);
 
   if (city && city !== "other") {
-    query = query.eq("city_slug", city);
+    const { data: cityRow } = await supabase
+      .from("cities")
+      .select("id")
+      .eq("slug", city)
+      .single();
+
+    if (cityRow) {
+      query = query.eq("city_id", cityRow.id);
+    }
   }
 
   const { data, error } = await query;

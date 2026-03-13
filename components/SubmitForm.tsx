@@ -9,7 +9,7 @@ const INPUT_CLASS =
 interface VenueSuggestion {
   id: string;
   name: string;
-  city_slug: string;
+  city_id: string;
 }
 
 function useVenueAutocomplete(city: string) {

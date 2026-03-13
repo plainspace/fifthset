@@ -177,7 +177,7 @@ export async function POST(request: NextRequest) {
             We review submissions daily and add shows within 24 hours.
           </p>
           <p style="line-height: 1.6; margin-bottom: 0;">
-            If you have questions, reply to this email.
+            If you have questions, email us at hello@fifthset.live.
           </p>
         </div>
       `;

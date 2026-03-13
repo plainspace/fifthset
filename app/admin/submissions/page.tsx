@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, Suspense } from "react";
+import { useState, useEffect, useCallback, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 
 type Status = "pending" | "approved" | "rejected";
@@ -35,6 +35,113 @@ const TABS: { label: string; value: Status }[] = [
   { label: "Approved", value: "approved" },
   { label: "Rejected", value: "rejected" },
 ];
+
+interface VenueSuggestion {
+  id: string;
+  name: string;
+  city_id: string;
+}
+
+function VenueAutocomplete({
+  value,
+  city,
+  onChange,
+  disabled,
+}: {
+  value: string;
+  city: string;
+  onChange: (val: string) => void;
+  disabled: boolean;
+}) {
+  const [suggestions, setSuggestions] = useState<VenueSuggestion[]>([]);
+  const [isOpen, setIsOpen] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(-1);
+  const timerRef = useRef<ReturnType<typeof setTimeout>>(null);
+
+  function handleChange(val: string) {
+    onChange(val);
+    if (timerRef.current) clearTimeout(timerRef.current);
+    if (val.trim().length < 2) {
+      setSuggestions([]);
+      setIsOpen(false);
+      return;
+    }
+    timerRef.current = setTimeout(async () => {
+      try {
+        const params = new URLSearchParams({ q: val.trim() });
+        if (city && city !== "other") params.set("city", city);
+        const res = await fetch(`/api/venues/search?${params}`);
+        if (!res.ok) return;
+        const json = await res.json();
+        const items: VenueSuggestion[] = json.venues ?? [];
+        setSuggestions(items);
+        setIsOpen(items.length > 0);
+        setActiveIndex(-1);
+      } catch {
+        setSuggestions([]);
+        setIsOpen(false);
+      }
+    }, 300);
+  }
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, []);
+
+  return (
+    <div className="relative">
+      <input
+        className={INPUT_CLASS}
+        value={value}
+        onChange={(e) => handleChange(e.target.value)}
+        onFocus={() => {
+          if (suggestions.length > 0) setIsOpen(true);
+        }}
+        onBlur={() => setTimeout(() => setIsOpen(false), 150)}
+        onKeyDown={(e) => {
+          if (!isOpen) return;
+          if (e.key === "ArrowDown") {
+            e.preventDefault();
+            setActiveIndex((prev) => (prev < suggestions.length - 1 ? prev + 1 : 0));
+          } else if (e.key === "ArrowUp") {
+            e.preventDefault();
+            setActiveIndex((prev) => (prev > 0 ? prev - 1 : suggestions.length - 1));
+          } else if (e.key === "Enter" && activeIndex >= 0) {
+            e.preventDefault();
+            onChange(suggestions[activeIndex].name);
+            setIsOpen(false);
+          } else if (e.key === "Escape") {
+            setIsOpen(false);
+          }
+        }}
+        disabled={disabled}
+      />
+      {isOpen && (
+        <ul className="absolute z-10 mt-1 w-full rounded-xl bg-surface border border-border shadow-lg overflow-hidden">
+          {suggestions.map((venue, i) => (
+            <li
+              key={venue.id}
+              className={`px-3 py-2 text-sm cursor-pointer transition-colors ${
+                i === activeIndex
+                  ? "bg-accent/10 text-accent"
+                  : "text-text hover:bg-accent/5"
+              }`}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                onChange(venue.name);
+                setIsOpen(false);
+              }}
+            >
+              {venue.name}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
 
 const STATUS_BADGE: Record<Status, string> = {
   pending: "bg-amber-500/20 text-amber-400 border-amber-500/30",
@@ -250,10 +357,10 @@ function AdminSubmissionsInner() {
                     </div>
                     <div>
                       <label className="block text-xs text-text-muted mb-1">Venue</label>
-                      <input
-                        className={INPUT_CLASS}
+                      <VenueAutocomplete
                         value={edit.venue}
-                        onChange={(e) => updateField(sub.id, sub, "venue", e.target.value)}
+                        city={edit.city}
+                        onChange={(val) => updateField(sub.id, sub, "venue", val)}
                         disabled={sub.status !== "pending"}
                       />
                     </div>

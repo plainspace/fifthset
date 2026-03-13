@@ -1,27 +1,71 @@
 import { Metadata } from 'next';
-import { MapPin, Star, Music } from 'lucide-react';
+import {
+  Star,
+  Calendar,
+  BarChart3,
+  Eye,
+  MapPin,
+  ArrowRight,
+  Check,
+  Megaphone,
+} from 'lucide-react';
 import Nav from '@/components/Nav';
 import Footer from '@/components/Footer';
 
 export const metadata: Metadata = {
   title: 'For Venues',
   description:
-    'Feature your jazz venue on Fifth Set. Reach thousands of jazz fans looking for live music tonight.',
+    'Claim a week as the Featured Venue on Fifth Set. Top placement, highlighted cards, and a banner across all city pages. From $99/week.',
 };
 
-const listed = [
-  'Included in all listings and search results',
-  'Visible on the map with show times',
-  'Artist names and set times displayed',
-  'Searchable by name and neighborhood',
+const perks = [
+  {
+    icon: Star,
+    title: 'Featured badge on every card',
+    description:
+      'All your event cards get a gold Featured badge for the entire week. Impossible to miss.',
+  },
+  {
+    icon: ArrowRight,
+    title: 'Top of listings placement',
+    description:
+      'Your shows appear first... above every other venue in your city. Prime real estate.',
+  },
+  {
+    icon: Megaphone,
+    title: 'Banner on your city page',
+    description:
+      'A dedicated banner at the top of your city\'s listings page. Every visitor sees it.',
+  },
+  {
+    icon: Eye,
+    title: '"Tonight at [Venue]" homepage callout',
+    description:
+      'When you have shows that night, your venue gets a prominent callout on the Fifth Set homepage.',
+  },
+  {
+    icon: BarChart3,
+    title: 'Analytics for the week',
+    description:
+      'See how many people viewed and clicked your listings. Know exactly what your week delivered.',
+  },
+  {
+    icon: Calendar,
+    title: 'Included in the weekly newsletter',
+    description:
+      'Your venue is highlighted in the email that goes out to every Fifth Set subscriber in your city.',
+  },
 ];
 
-const featured = [
-  'Priority placement in all listings',
-  'Gold badge on your venue and event cards',
-  'Included in the weekly newsletter',
-  'Enhanced profile with photos and details',
-  'Custom venue description',
+const weeks = [
+  { label: 'Mar 3', status: 'claimed', venue: 'Blue Note' },
+  { label: 'Mar 10', status: 'claimed', venue: 'Village Vanguard' },
+  { label: 'Mar 17', status: 'available', venue: null },
+  { label: 'Mar 24', status: 'available', venue: null },
+  { label: 'Mar 31', status: 'claimed', venue: 'Smalls' },
+  { label: 'Apr 7', status: 'available', venue: null },
+  { label: 'Apr 14', status: 'available', venue: null },
+  { label: 'Apr 21', status: 'available', venue: null },
 ];
 
 export default function ForVenuesPage() {
@@ -31,41 +75,25 @@ export default function ForVenuesPage() {
       <main className="pt-16 min-h-screen">
         {/* Hero */}
         <section className="max-w-3xl mx-auto px-4 sm:px-6 pt-20 pb-16 text-center">
+          <p className="text-xs font-mono uppercase tracking-widest text-accent mb-4">
+            Weekly Sponsorship
+          </p>
           <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl text-text text-balance">
-            Your venue, in front of the{' '}
-            <span className="text-accent">right audience</span>
+            Claim a week. Own the{' '}
+            <span className="text-accent">spotlight</span>.
           </h1>
           <p className="text-text-muted text-lg mt-6 max-w-xl mx-auto text-balance">
-            Fifth Set is where jazz fans go to find their next show. Every
-            night, thousands of listeners browse our listings looking for
-            live music. Your venue should be there.
+            Every week, one venue per city gets top billing on Fifth Set.
+            Featured placement, a banner on every page, and your name in front
+            of every jazz fan browsing tonight.
           </p>
-        </section>
-
-        {/* Stats */}
-        <section className="max-w-3xl mx-auto px-4 sm:px-6 pb-16">
-          <div className="grid grid-cols-3 gap-4 text-center">
-            <div className="rounded-xl bg-surface border border-border p-6">
-              <p className="text-2xl sm:text-3xl font-mono text-accent">90+</p>
-              <p className="text-sm text-text-muted mt-1">
-                Venues across New York
-              </p>
-            </div>
-            <div className="rounded-xl bg-surface border border-border p-6">
-              <p className="text-2xl sm:text-3xl font-mono text-accent">
-                Daily
-              </p>
-              <p className="text-sm text-text-muted mt-1">
-                Listings updated every day
-              </p>
-            </div>
-            <div className="rounded-xl bg-surface border border-border p-6">
-              <p className="text-2xl sm:text-3xl font-mono text-accent">Free</p>
-              <p className="text-sm text-text-muted mt-1">
-                To be listed on Fifth Set
-              </p>
-            </div>
-          </div>
+          <a
+            href="mailto:venues@fifthset.live?subject=Claim a Week"
+            className="inline-flex items-center gap-2 mt-8 px-8 py-3 bg-accent text-bg font-medium rounded-lg hover:bg-accent-hover transition-colors"
+          >
+            Claim Your Week
+            <ArrowRight className="w-4 h-4" />
+          </a>
         </section>
 
         {/* How it works */}
@@ -77,18 +105,18 @@ export default function ForVenuesPage() {
             {[
               {
                 step: '01',
-                title: 'Every jazz venue in New York is listed on Fifth Set',
-                body: "If you're hosting live jazz, you're already in our listings. We keep them accurate and up to date so fans always know what's happening tonight.",
+                title: 'Your venue is already listed',
+                body: 'We scrape public calendars daily. If you host live jazz, your shows are already on Fifth Set... accurate and up to date.',
               },
               {
                 step: '02',
-                title: 'Claim your venue to customize your profile',
-                body: 'Add photos, write your own description, and make your venue page feel like yours. A claimed profile tells fans you care about the experience.',
+                title: 'Claim a week to become the Featured Venue',
+                body: 'Pick any available week. One venue per city, first come first served. No subscriptions, no commitments... just the weeks you want.',
               },
               {
                 step: '03',
-                title: 'Featured venues get priority placement',
-                body: 'Stand out in listings, earn a gold badge, and get included in our weekly newsletter. Featured venues are the first thing fans see.',
+                title: 'Get top placement, a banner, and all the attention',
+                body: 'For that entire week, your venue leads every listing, gets a Featured badge on every card, and a banner across all city pages. Plus analytics so you know it worked.',
               },
             ].map((item) => (
               <div
@@ -109,127 +137,131 @@ export default function ForVenuesPage() {
           </div>
         </section>
 
-        {/* Featured preview */}
+        {/* What you get */}
         <section className="max-w-3xl mx-auto px-4 sm:px-6 pb-20">
           <h2 className="font-serif text-2xl text-text text-center mb-3 text-balance">
-            Stand out in every listing
+            What your week includes
           </h2>
           <p className="text-text-muted text-center mb-10 max-w-lg mx-auto text-balance">
-            Featured venues get a premium card that catches the eye before
-            anything else on the page.
+            Seven days of premium visibility across the entire site.
           </p>
 
-          <div className="flex justify-center">
-            <div className="w-full max-w-sm aspect-[3/4] rounded-2xl border-2 border-accent/40 overflow-hidden shadow-lg shadow-accent/10 relative">
-              {/* Full background image */}
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="https://www.bluenotejazz.com/nyc/wp-content/uploads/sites/2/2025/07/Blue-Note-Jazz_NYC_featured_1200x630.jpg"
-                alt="Jazz club interior with warm lighting and intimate stage"
-                className="absolute inset-0 w-full h-full object-cover"
-              />
-
-              {/* Featured badge */}
-              <div className="absolute top-4 right-4 z-10">
-                <span className="text-xs font-mono text-accent bg-black/40 backdrop-blur-xl px-3 py-1.5 rounded-full border border-accent/30">
-                  Featured
-                </span>
-              </div>
-
-              {/* Glass content panel */}
-              <div className="absolute inset-x-3 bottom-3 z-10 rounded-xl bg-white/10 backdrop-blur-xl border border-white/20 p-5 shadow-lg">
-                <div className="flex items-center gap-2">
-                  <h3 className="font-serif text-lg text-white">
-                    Blue Note NYC
-                  </h3>
-                  <Star className="w-3.5 h-3.5 text-accent fill-accent" />
-                </div>
-
-                <p className="flex items-center gap-1.5 text-sm text-white/70 mt-1.5">
-                  <Music className="w-3.5 h-3.5 text-accent shrink-0" />
-                  3 shows tonight
+          <div className="grid sm:grid-cols-2 gap-4">
+            {perks.map((perk) => (
+              <div
+                key={perk.title}
+                className="rounded-xl bg-surface border border-border p-6"
+              >
+                <perk.icon className="w-5 h-5 text-accent mb-3" />
+                <h3 className="font-serif text-base text-text">
+                  {perk.title}
+                </h3>
+                <p className="text-sm text-text-muted mt-2 text-pretty">
+                  {perk.description}
                 </p>
-
-                <div className="flex flex-col gap-1.5 mt-3 text-sm text-white/60">
-                  <span className="flex items-center gap-1.5">
-                    <MapPin className="w-3.5 h-3.5 shrink-0" />
-                    Greenwich Village
-                  </span>
-                  <p className="text-xs text-white/40">
-                    131 W 3rd St, New York, NY
-                  </p>
-                </div>
               </div>
-            </div>
+            ))}
           </div>
         </section>
 
-        {/* Pricing tiers */}
+        {/* Pricing */}
         <section className="max-w-3xl mx-auto px-4 sm:px-6 pb-20">
-          <div className="grid sm:grid-cols-2 gap-6">
-            {/* Listed - Free */}
-            <div className="rounded-xl bg-surface border border-border p-8">
-              <h2 className="font-serif text-xl text-text">Listed</h2>
-              <p className="text-2xl font-mono text-accent mt-2">Free</p>
-              <p className="text-sm text-text-muted mt-3 text-pretty">
-                You&apos;re probably already here. Every jazz venue in New York
-                appears on Fifth Set automatically.
-              </p>
-              <ul className="mt-6 space-y-2.5">
-                {listed.map((item) => (
-                  <li
-                    key={item}
-                    className="flex items-start gap-2.5 text-sm text-text-muted"
-                  >
-                    <span className="text-accent mt-0.5 shrink-0">+</span>
-                    <span className="text-pretty">{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
+          <div className="rounded-xl bg-surface border-2 border-accent/40 p-8 sm:p-10 text-center">
+            <p className="text-xs font-mono uppercase tracking-widest text-accent mb-4">
+              Simple Pricing
+            </p>
+            <h2 className="font-serif text-2xl sm:text-3xl text-text text-balance">
+              $99 <span className="text-text-muted font-sans text-lg">/week</span>
+            </h2>
+            <p className="text-text-muted mt-4 max-w-md mx-auto text-balance">
+              No monthly subscription. No tiers. No contracts. Just claim the
+              weeks you want and pay for what you use.
+            </p>
 
-            {/* Featured - $99/mo */}
-            <div className="rounded-xl bg-surface border-2 border-accent/40 p-8 relative">
-              <div className="absolute top-4 right-4">
-                <span className="text-xs font-mono text-accent bg-accent/10 px-2.5 py-1 rounded-full">
-                  Recommended
-                </span>
-              </div>
-              <h2 className="font-serif text-xl text-text">Featured</h2>
-              <p className="text-2xl font-mono text-accent mt-2">$99/mo</p>
-              <p className="text-sm text-text-muted mt-3 text-pretty">
-                The upgrade. Priority placement, a gold badge, and your venue
-                in front of our most engaged readers every week.
-              </p>
-              <ul className="mt-6 space-y-2.5">
-                {featured.map((item) => (
-                  <li
-                    key={item}
-                    className="flex items-start gap-2.5 text-sm text-text-muted"
-                  >
-                    <span className="text-accent mt-0.5 shrink-0">+</span>
-                    <span className="text-pretty">{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
+            <ul className="mt-8 space-y-3 text-left max-w-sm mx-auto">
+              {[
+                'One venue per city per week',
+                'All premium placements included',
+                'Analytics report at end of week',
+                'Cancel or skip anytime',
+              ].map((item) => (
+                <li
+                  key={item}
+                  className="flex items-start gap-2.5 text-sm text-text-muted"
+                >
+                  <Check className="w-4 h-4 text-accent mt-0.5 shrink-0" />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+
+            <a
+              href="mailto:venues@fifthset.live?subject=Claim a Week"
+              className="inline-flex items-center gap-2 mt-8 px-8 py-3 bg-accent text-bg font-medium rounded-lg hover:bg-accent-hover transition-colors"
+            >
+              Claim Your Week
+              <ArrowRight className="w-4 h-4" />
+            </a>
           </div>
         </section>
 
-        {/* CTA */}
+        {/* Availability calendar */}
+        <section className="max-w-3xl mx-auto px-4 sm:px-6 pb-20">
+          <h2 className="font-serif text-2xl text-text text-center mb-3 text-balance">
+            Availability
+          </h2>
+          <p className="text-text-muted text-center mb-8 max-w-lg mx-auto text-balance">
+            New York City... upcoming weeks. Claim yours before someone else does.
+          </p>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {weeks.map((week) => (
+              <div
+                key={week.label}
+                className={`rounded-xl border p-4 text-center ${
+                  week.status === 'claimed'
+                    ? 'bg-surface border-border'
+                    : 'bg-surface border-accent/30 border-2'
+                }`}
+              >
+                <p className="font-mono text-sm text-text">{week.label}</p>
+                {week.status === 'claimed' ? (
+                  <>
+                    <p className="text-xs text-text-muted mt-1.5">Claimed</p>
+                    <p className="text-xs text-text-muted/60 mt-0.5">
+                      {week.venue}
+                    </p>
+                  </>
+                ) : (
+                  <p className="text-xs text-accent font-medium mt-1.5">
+                    Available
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+
+          <p className="text-center text-xs text-text-muted/60 mt-4">
+            Placeholder... actual availability updates weekly.
+          </p>
+        </section>
+
+        {/* Bottom CTA */}
         <section className="max-w-3xl mx-auto px-4 sm:px-6 pb-24 text-center">
           <div className="rounded-xl bg-surface border border-border p-10">
             <h2 className="font-serif text-2xl text-text text-balance">
-              Want to feature your venue?
+              Ready to be the venue everyone sees first?
             </h2>
             <p className="text-text-muted mt-3 max-w-md mx-auto text-balance">
-              Drop us a line. We&apos;ll get back to you within a day or two.
+              Drop us a line with your preferred week and city. We&apos;ll
+              confirm availability and get you set up.
             </p>
             <a
-              href="mailto:venues@fifthset.live"
-              className="inline-block mt-6 px-8 py-3 bg-accent text-bg font-medium rounded-lg hover:bg-accent-hover transition-colors"
+              href="mailto:venues@fifthset.live?subject=Claim a Week"
+              className="inline-flex items-center gap-2 mt-6 px-8 py-3 bg-accent text-bg font-medium rounded-lg hover:bg-accent-hover transition-colors"
             >
-              Get in Touch
+              Claim Your Week
+              <ArrowRight className="w-4 h-4" />
             </a>
           </div>
         </section>

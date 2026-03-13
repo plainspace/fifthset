@@ -8,10 +8,14 @@ const AREA_MAP: Record<string, string> = {
   BX: "Bronx",
   QN: "Queens",
   SI: "Staten Island",
-  NJ: "New Jersey",
-  CT: "Connecticut",
-  WC: "Westchester",
-  LI: "Long Island",
+  NJ: "Tri-State",
+  CT: "Tri-State",
+  WC: "Tri-State",
+  WT: "Tri-State",
+  LI: "Tri-State",
+  RK: "Tri-State",
+  PA: "Tri-State",
+  HV: "Tri-State",
 };
 
 interface ScrapedEvent {

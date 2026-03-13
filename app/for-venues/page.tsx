@@ -4,7 +4,6 @@ import {
   Calendar,
   BarChart3,
   Eye,
-  MapPin,
   ArrowRight,
   Check,
   Megaphone,

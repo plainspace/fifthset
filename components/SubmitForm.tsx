@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect, FormEvent } from "react";
-import { Send, Music, MapPin, Calendar, Clock, CheckCircle } from "lucide-react";
+import { Send, Music, MapPin, Clock, CheckCircle } from "lucide-react";
+import DatePicker from "./DatePicker";
 
 const INPUT_CLASS =
   "w-full rounded-lg bg-bg border border-border px-4 py-2.5 text-sm text-text placeholder:text-text-muted/50 focus:outline-none focus:border-accent transition-colors";
@@ -167,16 +168,9 @@ export default function SubmitForm() {
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
             <label htmlFor="date" className="block text-sm text-text-muted mb-1.5">
-              <Calendar className="w-3.5 h-3.5 inline mr-1" aria-hidden="true" />
               Date *
             </label>
-            <input
-              type="date"
-              id="date"
-              name="date"
-              required
-              className={`${INPUT_CLASS} min-w-0`}
-            />
+            <DatePicker name="date" id="date" required />
           </div>
           <div>
             <label className="block text-sm text-text-muted mb-1.5">

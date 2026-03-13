@@ -12,7 +12,9 @@
 - **Styling:** Tailwind CSS v4
 - **Deploy:** Vercel (Supabase integration syncs env vars automatically)
 - **Auth:** Supabase Email OTP (passwordless)
-- **Scraper:** Node.js + Cheerio (daily cron via GitHub Actions)
+- **Scraper:** Node.js + Cheerio (daily cron via Vercel)
+- **Email:** Resend (alerts + form submissions)
+- **Analytics:** Vercel Analytics + Speed Insights
 
 ## Getting Started
 
@@ -23,7 +25,7 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Open [http://localhost:3006](http://localhost:3006).
 
 ## Environment Variables
 
@@ -32,6 +34,10 @@ Open [http://localhost:3000](http://localhost:3000).
 | `NEXT_PUBLIC_SUPABASE_URL` | Yes | Supabase project URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes | Supabase anon/public key |
 | `SUPABASE_SERVICE_ROLE_KEY` | Yes | Supabase service role key (scraper only) |
+| `CRON_SECRET` | Yes | Protects cron API routes |
+| `RESEND_API_KEY` | Yes | Email alerts + form submissions |
+| `GOOGLE_PLACES_API_KEY` | No | Geocoding fallback |
+| `GOOGLE_PLACES_MAX_REQUESTS` | No | Per-run geocode budget (default: 50) |
 
 ## Scripts
 
@@ -40,8 +46,10 @@ Open [http://localhost:3000](http://localhost:3000).
 | `npm run dev` | Start dev server |
 | `npm run build` | Production build |
 | `npm run lint` | Run ESLint |
-| `npm run scrape` | Run jazz-nyc.com scraper |
+| `npm run scrape` | Scrape NYC (jazz-nyc.com). Add `-- --push` to write to DB |
+| `npm run scrape:nola` | Scrape NOLA (WWOZ Livewire). Add `-- --push` to write to DB |
 | `npm run geocode` | Geocode venues missing coordinates |
+| `npm run enrich` | Enrich venue data (website, phone, photo) |
 
 ## Project Structure
 
@@ -86,11 +94,13 @@ fifthset/
 │       ├── auth.ts           # Auth helpers (sign in/up/out, OAuth)
 │       └── queries.ts        # Data fetching functions
 ├── scraper/
-│   ├── scrape.ts             # jazz-nyc.com scraper
+│   ├── scrape.ts             # NYC scraper (jazz-nyc.com)
+│   ├── scrape-nola.ts        # NOLA scraper (WWOZ Livewire)
+│   ├── normalize.ts          # Data validation + name normalization
 │   ├── push-to-db.ts         # Upsert scraped data to Supabase
-│   └── geocode.ts            # Venue geocoding (Nominatim)
-└── .github/workflows/
-    └── scrape.yml            # Daily cron at 6am ET
+│   ├── geocode.ts            # Venue geocoding (Nominatim + Google Places)
+│   ├── enrich.ts             # Venue data enrichment
+│   └── inspect-wwoz.ts       # WWOZ HTML structure debugger
 ```
 
 ## Features
@@ -101,30 +111,39 @@ fifthset/
 - **JSON-LD structured data** (MusicEvent, MusicVenue, Organization)
 - **Cmd+K search** across venues and artists
 - **Auth** via Supabase (email/password, Google, Spotify OAuth)
-- **Sponsor tiers** (Free, Spotlight, Marquee) with featured treatment
+- **Weekly sponsorship** (Claim a Week model for venue featuring)
 - **MapLibre** dark map with clustered venue markers
 - **Mobile-first** responsive design
 
-## Sponsorship Tiers
+## Sponsorship
 
-| Tier | Price | Treatment |
-|------|-------|-----------|
-| Free | $0 | Standard listing |
-| Spotlight | $99/mo | Gold border, "Featured" badge, priority sort |
-| Marquee | $349/mo | Same + newsletter placement, homepage feature |
+Weekly "Claim a Week" model:
+
+- $99/week per city
+- Featured badge, top placement, city page banner
+- "Tonight at [Venue]" homepage callout
+- Analytics on impressions and clicks
 
 ## Cities
 
-NYC (live), Chicago, New Orleans, LA, SF (scaffolded, pending scrapers).
+| City | Slug | Source | Status |
+|------|------|--------|--------|
+| New York City | `nyc` | jazz-nyc.com | Live |
+| New Orleans | `nola` | WWOZ Livewire | Live |
+| Chicago | `chicago` | TBD | Coming Soon |
+| Los Angeles | `la` | TBD | Coming Soon |
+| San Francisco | `sf` | TBD | Coming Soon |
 
 ## Data Pipeline
 
-The scraper runs daily at 6am ET via GitHub Actions:
+Scrapers run daily at 10 AM UTC (6 AM ET) via Vercel cron:
 
-1. Fetches jazz-nyc.com HTML table
-2. Parses rows into venue/artist/event records
-3. Upserts to Supabase (deduplicates by name/date)
-4. Auto-geocodes new venues via Nominatim (7-strategy fallback)
+1. **Scrape** sources (jazz-nyc.com, WWOZ Livewire)
+2. **Normalize** and validate (dates, times, names, dedup)
+3. **Push** to Supabase (upsert venues/artists, insert events)
+4. **Cleanup** stale events (older than 30 days)
+5. **Geocode** new venues (Nominatim 7-strategy fallback, then Google Places)
+6. **Alert** on failures via Resend email
 
 ## Email Addresses
 

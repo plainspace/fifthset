@@ -24,7 +24,7 @@ interface VenueRow {
 }
 
 // Stats for the summary log
-interface EnrichStats {
+export interface EnrichStats {
   total: number;
   enriched: number;
   photos: number;
@@ -219,7 +219,7 @@ function formatPhone(digits: string): string {
   return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
 }
 
-async function enrichVenues(dryRun: boolean) {
+export async function enrichVenues(dryRun: boolean): Promise<EnrichStats> {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
@@ -240,7 +240,7 @@ async function enrichVenues(dryRun: boolean) {
   if (error) throw error;
   if (!venues || venues.length === 0) {
     console.log("No venues need enrichment. All venues with websites have photo and phone data.");
-    return;
+    return { total: 0, enriched: 0, photos: 0, phones: 0, descriptions: 0, socials: 0, skipped: 0, errors: 0 };
   }
 
   const venueRows = venues as VenueRow[];
@@ -365,6 +365,8 @@ async function enrichVenues(dryRun: boolean) {
   if (dryRun) {
     console.log("\n[DRY RUN] No changes were written. Run without --dry-run to persist.");
   }
+
+  return stats;
 }
 
 // Run directly: npx tsx scraper/enrich.ts

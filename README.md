@@ -10,7 +10,8 @@
 - **Database:** Supabase (Postgres, Auth, RLS)
 - **Maps:** MapLibre GL JS + CARTO dark-matter tiles
 - **Styling:** Tailwind CSS v4
-- **Deploy:** Vercel
+- **Deploy:** Vercel (Supabase integration syncs env vars automatically)
+- **Auth:** Supabase Email OTP (passwordless)
 - **Scraper:** Node.js + Cheerio (daily cron via GitHub Actions)
 
 ## Getting Started

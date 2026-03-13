@@ -1,42 +1,22 @@
 import { createClient } from "./client";
 
-export async function signUp(email: string, password: string) {
+export async function signInWithOtp(email: string) {
   const supabase = createClient();
-  const { data, error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signInWithOtp({
     email,
-    password,
-  });
-  return { data, error };
-}
-
-export async function signIn(email: string, password: string) {
-  const supabase = createClient();
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
-  return { data, error };
-}
-
-export async function signInWithGoogle() {
-  const supabase = createClient();
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: "google",
     options: {
-      redirectTo: `${window.location.origin}/auth/callback`,
+      shouldCreateUser: true,
     },
   });
   return { data, error };
 }
 
-export async function signInWithSpotify() {
+export async function verifyOtp(email: string, token: string) {
   const supabase = createClient();
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: "spotify",
-    options: {
-      redirectTo: `${window.location.origin}/auth/callback`,
-      scopes: "user-read-recently-played user-top-read user-library-read",
-    },
+  const { data, error } = await supabase.auth.verifyOtp({
+    email,
+    token,
+    type: "email",
   });
   return { data, error };
 }

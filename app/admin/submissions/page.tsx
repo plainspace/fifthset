@@ -13,6 +13,7 @@ interface Submission {
   time: string;
   city: string;
   genre: string | null;
+  venue_url: string | null;
   submitter_email: string | null;
   created_at: string;
   status: Status;
@@ -402,6 +403,20 @@ function AdminSubmissionsInner() {
                       />
                     </div>
                   </div>
+
+                  {sub.venue_url && (
+                    <div className="mb-4">
+                      <label className="block text-xs text-text-muted mb-1">Calendar URL</label>
+                      <a
+                        href={sub.venue_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-accent hover:underline break-all"
+                      >
+                        {sub.venue_url}
+                      </a>
+                    </div>
+                  )}
 
                   <div className="flex items-center justify-between text-xs text-text-subtle">
                     <span>

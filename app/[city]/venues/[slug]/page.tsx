@@ -1,14 +1,14 @@
-import { Metadata } from "next";
-import { notFound } from "next/navigation";
-import Image from "next/image";
-import Link from "next/link";
-import { ExternalLink, MapPin, Phone, Star, Clock } from "lucide-react";
-import { getCityBySlug } from "@/lib/cities";
-import { createClient } from "@/lib/supabase/server";
-import { getVenueBySlug, getVenueEvents } from "@/lib/supabase/queries";
-import { formatTime, getDateLabel, cn } from "@/lib/utils";
-import { venueSchema, breadcrumbSchema } from "@/lib/jsonld";
-import JsonLd from "@/components/JsonLd";
+import { Metadata } from 'next';
+import { notFound } from 'next/navigation';
+import Image from 'next/image';
+import Link from 'next/link';
+import { ExternalLink, MapPin, Phone, Star, Clock } from 'lucide-react';
+import { getCityBySlug } from '@/lib/cities';
+import { createClient } from '@/lib/supabase/server';
+import { getVenueBySlug, getVenueEvents } from '@/lib/supabase/queries';
+import { formatTime, getDateLabel, cn } from '@/lib/utils';
+import { venueSchema, breadcrumbSchema } from '@/lib/jsonld';
+import JsonLd from '@/components/JsonLd';
 
 export async function generateMetadata({
   params,
@@ -22,7 +22,7 @@ export async function generateMetadata({
   if (!venue) return {};
 
   const title = `${venue.name} - Jazz in ${city!.name}`;
-  const description = `Upcoming jazz shows at ${venue.name}${venue.address ? `, ${venue.address}` : ""}. See tonight's lineup and upcoming events.`;
+  const description = `Upcoming jazz shows at ${venue.name}${venue.address ? `, ${venue.address}` : ''}. See tonight's lineup and upcoming events.`;
 
   return {
     title,
@@ -61,33 +61,39 @@ export default async function VenueDetailPage({
   const venue = await getVenueBySlug(supabase, citySlug, slug);
   if (!venue) notFound();
 
-  const isFeatured = venue.sponsor_tier === "marquee" || venue.sponsor_tier === "spotlight";
+  const isFeatured =
+    venue.sponsor_tier === 'marquee' || venue.sponsor_tier === 'spotlight';
 
   const events = await getVenueEvents(supabase, venue.id);
 
-  const eventsByDate = events.reduce<Record<string, typeof events>>((acc, event) => {
-    if (!acc[event.date]) acc[event.date] = [];
-    acc[event.date].push(event);
-    return acc;
-  }, {});
+  const eventsByDate = events.reduce<Record<string, typeof events>>(
+    (acc, event) => {
+      if (!acc[event.date]) acc[event.date] = [];
+      acc[event.date].push(event);
+      return acc;
+    },
+    {},
+  );
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
       <JsonLd data={venueSchema(venue, citySlug)} />
       <JsonLd
         data={breadcrumbSchema([
-          { name: "Home", url: "/" },
+          { name: 'Home', url: '/' },
           { name: city.name, url: `/${citySlug}` },
-          { name: "Venues", url: `/${citySlug}/venues` },
+          { name: 'Venues', url: `/${citySlug}/venues` },
           { name: venue.name, url: `/${citySlug}/venues/${venue.slug}` },
         ])}
       />
       {/* Venue header */}
-      <div className={cn(
-        "relative rounded-2xl overflow-hidden",
-        venue.photo_url ? "min-h-[280px] sm:min-h-[320px]" : "bg-surface",
-        isFeatured && "featured-border",
-      )}>
+      <div
+        className={cn(
+          'relative rounded-2xl overflow-hidden',
+          venue.photo_url ? 'min-h-[280px] sm:min-h-[320px]' : 'bg-surface',
+          isFeatured && 'featured-border',
+        )}
+      >
         {venue.photo_url ? (
           <>
             <Image
@@ -99,10 +105,14 @@ export default async function VenueDetailPage({
             />
             <div className="absolute inset-0 bg-black/40" />
             <div className="absolute inset-x-4 bottom-4 sm:inset-x-6 sm:bottom-6 z-10">
-              <div className="rounded-xl bg-white/10 backdrop-blur-xl border border-white/20 p-5 sm:p-6 shadow-lg">
+              <div className="rounded-xl bg-white/10 backdrop-blur-md border border-white/20 p-5 sm:p-6 shadow-lg">
                 <div className="flex items-center gap-2">
-                  <h1 className="font-serif text-2xl sm:text-3xl text-white">{venue.name}</h1>
-                  {isFeatured && <Star className="w-5 h-5 text-accent fill-accent" />}
+                  <h1 className="font-serif text-2xl sm:text-3xl text-white">
+                    {venue.name}
+                  </h1>
+                  {isFeatured && (
+                    <Star className="w-5 h-5 text-accent fill-accent" />
+                  )}
                 </div>
                 <div className="flex items-center gap-1.5 mt-2 text-white/70">
                   <MapPin className="w-4 h-4" />
@@ -137,7 +147,9 @@ export default async function VenueDetailPage({
           <div className="p-6 sm:p-8">
             <div className="flex items-center gap-2">
               <h1 className="font-serif text-3xl text-text">{venue.name}</h1>
-              {isFeatured && <Star className="w-5 h-5 text-accent fill-accent" />}
+              {isFeatured && (
+                <Star className="w-5 h-5 text-accent fill-accent" />
+              )}
             </div>
             <div className="flex items-center gap-1.5 mt-2 text-text-muted">
               <MapPin className="w-4 h-4" />
@@ -196,7 +208,8 @@ export default async function VenueDetailPage({
                           <Clock className="w-3.5 h-3.5" />
                           <span className="font-mono">
                             {formatTime(event.start_time)}
-                            {event.end_time && ` to ${formatTime(event.end_time)}`}
+                            {event.end_time &&
+                              ` to ${formatTime(event.end_time)}`}
                           </span>
                         </div>
                       </div>

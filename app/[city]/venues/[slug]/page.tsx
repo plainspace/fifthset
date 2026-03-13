@@ -98,8 +98,8 @@ export default async function VenueDetailPage({
               priority
             />
             <div className="absolute inset-0 bg-black/40" />
-            <div className="relative z-10 flex items-end h-full p-4 sm:p-6">
-              <div className="w-full rounded-xl bg-white/10 backdrop-blur-xl border border-white/20 p-5 sm:p-6 shadow-lg">
+            <div className="absolute inset-x-4 bottom-4 sm:inset-x-6 sm:bottom-6 z-10">
+              <div className="rounded-xl bg-white/10 backdrop-blur-xl border border-white/20 p-5 sm:p-6 shadow-lg">
                 <div className="flex items-center gap-2">
                   <h1 className="font-serif text-2xl sm:text-3xl text-white">{venue.name}</h1>
                   {isFeatured && <Star className="w-5 h-5 text-accent fill-accent" />}

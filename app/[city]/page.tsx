@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getCityBySlug, getCitySlugs } from "@/lib/cities";
@@ -75,13 +76,15 @@ export default async function CityPage({ params }: { params: Promise<{ city: str
       <JsonLd
         data={events.slice(0, 20).map((e) => eventSchema(e, city.slug, e.date))}
       />
-      <ListingsView
-        city={city}
-        events={events}
-        heading="Live Jazz"
-        subtitle={`Tonight \u00A0/\u00A0 ${formatDateFull(today)}`}
-        showLabel="tonight"
-      />
+      <Suspense>
+        <ListingsView
+          city={city}
+          events={events}
+          heading="Live Jazz"
+          subtitle={`Tonight \u00A0/\u00A0 ${formatDateFull(today)}`}
+          showLabel="tonight"
+        />
+      </Suspense>
     </>
   );
 }

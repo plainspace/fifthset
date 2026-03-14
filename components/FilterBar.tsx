@@ -9,6 +9,8 @@ interface FilterBarProps {
   activeTimes: Set<TimeOfDay>;
   onRegionToggle: (region: string) => void;
   onTimeToggle: (time: TimeOfDay) => void;
+  onClearRegions?: () => void;
+  onClearTimes?: () => void;
 }
 
 const timeFilters: { label: string; value: TimeOfDay }[] = [
@@ -23,6 +25,8 @@ export default function FilterBar({
   activeTimes,
   onRegionToggle,
   onTimeToggle,
+  onClearRegions,
+  onClearTimes,
 }: FilterBarProps) {
   const allRegions = activeRegions.size === 0;
   const allTimes = activeTimes.size === 0;
@@ -37,7 +41,8 @@ export default function FilterBar({
         <button
           onClick={() => {
             if (!allRegions) {
-              activeRegions.forEach((r) => onRegionToggle(r));
+              if (onClearRegions) onClearRegions();
+              else activeRegions.forEach((r) => onRegionToggle(r));
             }
           }}
           aria-pressed={allRegions}
@@ -75,7 +80,8 @@ export default function FilterBar({
         <button
           onClick={() => {
             if (!allTimes) {
-              activeTimes.forEach((t) => onTimeToggle(t));
+              if (onClearTimes) onClearTimes();
+              else activeTimes.forEach((t) => onTimeToggle(t));
             }
           }}
           aria-pressed={allTimes}

@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getCityBySlug, getCitySlugs } from "@/lib/cities";
@@ -53,12 +54,14 @@ export default async function TomorrowPage({ params }: { params: Promise<{ city:
   const events = await getEvents(supabase, city.slug, [tomorrowStr]);
 
   return (
-    <ListingsView
-      city={city}
-      events={events}
-      heading="Tomorrow"
-      subtitle={`Tomorrow \u00A0/\u00A0 ${formatDateFull(tomorrowStr)}`}
-      showLabel=""
-    />
+    <Suspense>
+      <ListingsView
+        city={city}
+        events={events}
+        heading="Tomorrow"
+        subtitle={`Tomorrow \u00A0/\u00A0 ${formatDateFull(tomorrowStr)}`}
+        showLabel=""
+      />
+    </Suspense>
   );
 }

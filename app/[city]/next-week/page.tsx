@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getCityBySlug, getCitySlugs } from "@/lib/cities";
@@ -67,12 +68,14 @@ export default async function NextWeekPage({ params }: { params: Promise<{ city:
     : formatDateFull(weekDates[0]);
 
   return (
-    <GroupedListingsView
-      city={city}
-      events={events}
-      title="Next Week"
-      dateRange={dateRange}
-      showLabel="next week"
-    />
+    <Suspense>
+      <GroupedListingsView
+        city={city}
+        events={events}
+        title="Next Week"
+        dateRange={dateRange}
+        showLabel="next week"
+      />
+    </Suspense>
   );
 }

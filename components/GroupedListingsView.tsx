@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
+import { useMemo } from 'react';
 import { Music } from 'lucide-react';
-import { City, Event, TimeOfDay } from '@/lib/types';
+import { City, Event } from '@/lib/types';
 import { getTimeOfDay, getDateLabel, formatDateFull } from '@/lib/utils';
+import { useFilterParams } from '@/lib/useFilterParams';
 import FilterBar from '@/components/FilterBar';
 import EventCard from '@/components/EventCard';
 import FeaturedVenues from '@/components/FeaturedVenues';
@@ -23,26 +24,14 @@ export default function GroupedListingsView({
   dateRange,
   showLabel,
 }: GroupedListingsViewProps) {
-  const [activeRegions, setActiveRegions] = useState<Set<string>>(new Set());
-  const [activeTimes, setActiveTimes] = useState<Set<TimeOfDay>>(new Set());
-
-  const toggleRegion = useCallback((region: string) => {
-    setActiveRegions((prev) => {
-      const next = new Set(prev);
-      if (next.has(region)) next.delete(region);
-      else next.add(region);
-      return next;
-    });
-  }, []);
-
-  const toggleTime = useCallback((time: TimeOfDay) => {
-    setActiveTimes((prev) => {
-      const next = new Set(prev);
-      if (next.has(time)) next.delete(time);
-      else next.add(time);
-      return next;
-    });
-  }, []);
+  const {
+    activeRegions,
+    activeTimes,
+    toggleRegion,
+    toggleTime,
+    clearRegions,
+    clearTimes,
+  } = useFilterParams();
 
   const featuredVenues = useMemo(() => {
     const seen = new Set<string>();
@@ -93,6 +82,8 @@ export default function GroupedListingsView({
           activeTimes={activeTimes}
           onRegionToggle={toggleRegion}
           onTimeToggle={toggleTime}
+          onClearRegions={clearRegions}
+          onClearTimes={clearTimes}
         />
       </div>
 

@@ -16,6 +16,13 @@ import { isAllowedByRobots } from "./check-robots";
 // Run with: npx tsx scraper/scrape-nola.ts
 // =============================================================================
 
+function normalizeText(str: string): string {
+  return str
+    .replace(/[\u2018\u2019]/g, "'")
+    .replace(/[\u201C\u201D]/g, '"')
+    .replace(/[\u2013\u2014]/g, "-");
+}
+
 // --- Region mapping for NOLA neighborhoods ---
 
 const VENUE_REGION_MAP: Record<string, string> = {
@@ -231,7 +238,7 @@ export async function scrapeWWOZ(): Promise<ScrapedEvent[]> {
 
     // Venue from panel heading
     const venueLink = $panel.find(".panel-heading .panel-title a");
-    const venueName = venueLink.text().replace(/\u00a0/g, " ").trim();
+    const venueName = normalizeText(venueLink.text().replace(/\u00a0/g, " ").trim());
     const venueHref = venueLink.attr("href");
     const venueUrl = venueHref
       ? `https://www.wwoz.org${venueHref}`
@@ -247,7 +254,7 @@ export async function scrapeWWOZ(): Promise<ScrapedEvent[]> {
 
       // Artist from the truncated link
       const artistLink = $row.find(".calendar-info p.truncate a");
-      const artistName = artistLink.text().replace(/\u00a0/g, " ").replace(/&amp;/g, "&").trim();
+      const artistName = normalizeText(artistLink.text().replace(/\u00a0/g, " ").replace(/&amp;/g, "&").trim());
       const artistHref = artistLink.attr("href");
       const artistUrl = artistHref
         ? `https://www.wwoz.org${artistHref}`

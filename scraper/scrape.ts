@@ -2,6 +2,13 @@ import * as cheerio from "cheerio";
 import { slugify } from "../lib/utils";
 import { isAllowedByRobots } from "./check-robots";
 
+function normalizeText(str: string): string {
+  return str
+    .replace(/[\u2018\u2019]/g, "'")
+    .replace(/[\u201C\u201D]/g, '"')
+    .replace(/[\u2013\u2014]/g, "-");
+}
+
 // Area code to region mapping
 const AREA_MAP: Record<string, string> = {
   MT: "Manhattan",
@@ -136,9 +143,9 @@ export async function scrapeJazzNYC(): Promise<ScrapedEvent[]> {
     const { start, end, secondSet } = parseTime(timeStr);
     const region = AREA_MAP[areaCode] || areaCode.toLowerCase();
 
-    const venueName = venueCell.text().replace(/\u00a0/g, " ").trim();
+    const venueName = normalizeText(venueCell.text().replace(/\u00a0/g, " ").trim());
     const venueLink = venueCell.find("a").attr("href");
-    const artistName = artistCell.text().replace(/\u00a0/g, " ").trim();
+    const artistName = normalizeText(artistCell.text().replace(/\u00a0/g, " ").trim());
     const artistLink = artistCell.find("a").attr("href");
 
     if (!venueName || !artistName) return;

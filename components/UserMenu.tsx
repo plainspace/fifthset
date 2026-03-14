@@ -4,6 +4,14 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { LogOut, Settings } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 import { createClient } from "@/lib/supabase/client";
 import { signOut } from "@/lib/supabase/auth";
@@ -11,7 +19,6 @@ import type { User } from "@supabase/supabase-js";
 
 export default function UserMenu() {
   const [user, setUser] = useState<User | null>(null);
-  const [menuOpen, setMenuOpen] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -31,7 +38,6 @@ export default function UserMenu() {
   }, []);
 
   async function handleSignOut() {
-    setMenuOpen(false);
     await signOut();
     router.refresh();
   }
@@ -53,47 +59,31 @@ export default function UserMenu() {
     email.length > 24 ? email.slice(0, 24) + "..." : email;
 
   return (
-    <div className="relative">
-      <button
-        onClick={() => setMenuOpen(!menuOpen)}
-        aria-label="Account menu"
-        aria-expanded={menuOpen}
-        aria-haspopup="true"
-        className="w-8 h-8 rounded-full bg-accent text-bg flex items-center justify-center text-sm font-medium"
-      >
-        {initial}
-      </button>
-      {menuOpen && (
-        <>
-          <div className="fixed inset-0" onClick={() => setMenuOpen(false)} />
-          <div role="menu" className="absolute top-full mt-2 right-0 bg-surface border border-border rounded-lg shadow-xl py-1 min-w-[200px]">
-            <div className="px-4 py-2 border-b border-border">
-              <p className="text-sm text-text-muted truncate">{truncatedEmail}</p>
-            </div>
-            <Link
-              href="/settings"
-              role="menuitem"
-              onClick={() => setMenuOpen(false)}
-              className="block px-4 py-2 text-sm text-text-muted hover:text-text hover:bg-surface-hover transition-colors"
-            >
-              <span className="flex items-center gap-2">
-                <Settings className="w-4 h-4" aria-hidden="true" />
-                Preferences
-              </span>
-            </Link>
-            <button
-              role="menuitem"
-              onClick={handleSignOut}
-              className="w-full text-left block px-4 py-2 text-sm text-text-muted hover:text-text hover:bg-surface-hover transition-colors"
-            >
-              <span className="flex items-center gap-2">
-                <LogOut className="w-4 h-4" aria-hidden="true" />
-                Sign Out
-              </span>
-            </button>
-          </div>
-        </>
-      )}
-    </div>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          aria-label="Account menu"
+          className="w-8 h-8 rounded-full bg-accent text-bg flex items-center justify-center text-sm font-medium outline-none"
+        >
+          {initial}
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="min-w-[200px] bg-surface border-border">
+        <DropdownMenuLabel className="text-text-muted truncate">
+          {truncatedEmail}
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link href="/settings" className="flex items-center gap-2 text-text-muted">
+            <Settings className="w-4 h-4" aria-hidden="true" />
+            Preferences
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={handleSignOut} className="flex items-center gap-2 text-text-muted">
+          <LogOut className="w-4 h-4" aria-hidden="true" />
+          Sign Out
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

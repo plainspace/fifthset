@@ -1,13 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
-import { MapPin, Menu, X, ChevronDown, Music, Star } from "lucide-react";
+import { MapPin, Menu, ChevronDown, Music, Star, Calendar } from "lucide-react";
 import { cities } from "@/lib/cities";
 import { cn } from "@/lib/utils";
 import Search from "@/components/Search";
 import UserMenu from "@/components/UserMenu";
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 
 const dateFiltersConfig = [
   { label: "Tnght", short: "Tnght", fullLabel: "Tonight", href: "" },
@@ -20,9 +21,23 @@ const dateFiltersConfig = [
 export default function Nav() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [cityOpen, setCityOpen] = useState(false);
+  const [periodOpen, setPeriodOpen] = useState(false);
+  const periodRef = useRef<HTMLDivElement>(null);
   const params = useParams();
   const pathname = usePathname();
   const currentCity = cities.find((c) => c.slug === params.city) || cities[0];
+
+  // Close period dropdown on outside click
+  useEffect(() => {
+    if (!periodOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (periodRef.current && !periodRef.current.contains(e.target as Node)) {
+        setPeriodOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [periodOpen]);
 
   const dateFilters = dateFiltersConfig.map((f) => ({
     ...f,
@@ -34,17 +49,16 @@ export default function Nav() {
     <nav aria-label="Main navigation" className="fixed top-0 left-0 right-0 z-40 bg-bg/90 backdrop-blur-md border-b border-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <Link href={`/${currentCity.slug}`} className="flex items-center gap-2 shrink-0">
-            <span className="font-serif text-xl text-accent tracking-tight">
-              Fifth Set
-            </span>
-          </Link>
+          {/* Logo + City selector */}
+          <div className="flex items-center gap-3 shrink-0">
+            <Link href={`/${currentCity.slug}`} className="flex items-center gap-2">
+              <span className="font-serif text-xl text-accent tracking-tight">
+                Fifth Set
+              </span>
+            </Link>
 
-          {/* Desktop nav */}
-          <div className="hidden md:flex items-center gap-2 lg:gap-5 ml-auto">
-            {/* City selector */}
-            <div className="relative">
+            {/* City selector (desktop) */}
+            <div className="hidden md:block relative">
               <button
                 onClick={() => setCityOpen(!cityOpen)}
                 aria-expanded={cityOpen}
@@ -59,7 +73,7 @@ export default function Nav() {
               {cityOpen && (
                 <>
                   <div className="fixed inset-0" onClick={() => setCityOpen(false)} />
-                  <div role="menu" className="absolute top-full mt-2 right-0 bg-surface border border-border rounded-lg shadow-xl py-1 min-w-[180px]">
+                  <div role="menu" className="absolute top-full mt-2 left-0 bg-surface border border-border rounded-lg shadow-xl py-1 min-w-[180px]">
                     {cities.map((city) =>
                       city.live ? (
                         <Link
@@ -92,7 +106,10 @@ export default function Nav() {
                 </>
               )}
             </div>
+          </div>
 
+          {/* Desktop nav */}
+          <div className="hidden md:flex items-center gap-2 lg:gap-5 ml-auto">
             {/* Date filters */}
             <div className="flex items-center gap-0.5 lg:gap-1">
               {dateFilters.map((filter) => (
@@ -164,25 +181,152 @@ export default function Nav() {
             <UserMenu />
           </div>
 
-          {/* Mobile menu button */}
-          <button
-            onClick={() => setMobileOpen(!mobileOpen)}
-            aria-expanded={mobileOpen}
-            aria-controls="mobile-menu"
-            aria-label={mobileOpen ? "Close menu" : "Open menu"}
-            className="md:hidden text-text-muted hover:text-text"
-          >
-            {mobileOpen ? <X className="w-5 h-5" aria-hidden="true" /> : <Menu className="w-5 h-5" aria-hidden="true" />}
-          </button>
+          {/* Mobile controls: period dropdown + search + hamburger */}
+          <div className="md:hidden flex items-center gap-2">
+            {/* Period dropdown */}
+            <div ref={periodRef} className="relative">
+              <button
+                onClick={() => setPeriodOpen(!periodOpen)}
+                aria-expanded={periodOpen}
+                aria-haspopup="true"
+                className={cn(
+                  "flex items-center gap-1 px-2.5 py-1.5 text-xs rounded-full transition-colors",
+                  dateFilters.some((f) => f.href !== `/${currentCity.slug}` && pathname === f.href)
+                    ? "bg-accent text-bg font-medium"
+                    : "bg-surface text-text-muted"
+                )}
+              >
+                <Calendar className="w-3.5 h-3.5" aria-hidden="true" />
+                <span>{dateFilters.find((f) => pathname === f.href)?.fullLabel || "Tonight"}</span>
+                <ChevronDown className={cn("w-3 h-3 transition-transform", periodOpen && "rotate-180")} aria-hidden="true" />
+              </button>
+              {periodOpen && (
+                <div role="menu" className="absolute top-full mt-2 right-0 bg-surface border border-border rounded-lg shadow-xl py-1 min-w-[160px] z-50">
+                  {dateFilters.map((filter) => (
+                    <Link
+                      key={filter.label}
+                      href={filter.href}
+                      role="menuitem"
+                      onClick={() => setPeriodOpen(false)}
+                      className={cn(
+                        "block px-4 py-2 text-sm transition-colors",
+                        pathname === filter.href
+                          ? "text-accent bg-surface-hover"
+                          : "text-text-muted hover:text-text hover:bg-surface-hover"
+                      )}
+                    >
+                      {filter.fullLabel}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Search button (visible on mobile) */}
+            <Search />
+
+            {/* Hamburger */}
+            <button
+              onClick={() => setMobileOpen(!mobileOpen)}
+              aria-label={mobileOpen ? "Close menu" : "Open menu"}
+              className="text-text-muted hover:text-text"
+            >
+              <Menu className="w-5 h-5" aria-hidden="true" />
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Mobile menu */}
-      {mobileOpen && (
-        <div id="mobile-menu" role="navigation" className="md:hidden border-t border-border bg-bg/95 backdrop-blur-md">
-          <div className="px-4 py-4 space-y-4">
-            {/* City selector */}
-            <div className="space-y-2">
+      {/* Mobile bottom sheet */}
+      <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+        <SheetContent side="bottom" showCloseButton={false} className="md:hidden rounded-t-2xl bg-bg border-border max-h-[75vh]">
+          <SheetTitle className="sr-only">Navigation</SheetTitle>
+
+          {/* Drag handle */}
+          <div className="flex justify-center pt-1 pb-2">
+            <div className="w-10 h-1 rounded-full bg-text-muted/30" />
+          </div>
+
+          <div className="px-5 pb-8 overflow-y-auto">
+            {/* Search */}
+            <div className="mb-4">
+              <Search />
+            </div>
+
+            <div className="h-px bg-border" />
+
+            {/* When */}
+            <div className="py-4 space-y-2">
+              <p className="text-xs uppercase tracking-wider text-text-muted">When</p>
+              <div className="flex flex-wrap gap-2">
+                {dateFilters.map((filter) => (
+                  <Link
+                    key={filter.label}
+                    href={filter.href}
+                    onClick={() => setMobileOpen(false)}
+                    className={cn(
+                      "px-3 py-1.5 text-sm rounded-full transition-colors",
+                      pathname === filter.href
+                        ? "bg-accent text-bg font-medium"
+                        : "bg-surface text-text-muted"
+                    )}
+                  >
+                    {filter.fullLabel}
+                  </Link>
+                ))}
+              </div>
+            </div>
+
+            <div className="h-px bg-border" />
+
+            {/* Browse */}
+            <div className="py-4 space-y-1">
+              <p className="text-xs uppercase tracking-wider text-text-muted mb-2">Browse</p>
+              <Link
+                href={`/${currentCity.slug}/venues`}
+                onClick={() => setMobileOpen(false)}
+                className={cn(
+                  "flex items-center gap-3 px-2 py-2.5 rounded-lg transition-colors",
+                  pathname === `/${currentCity.slug}/venues`
+                    ? "text-accent bg-surface"
+                    : "text-text-muted hover:text-text hover:bg-surface"
+                )}
+              >
+                <Music className="w-4 h-4" aria-hidden="true" />
+                Venues
+              </Link>
+              <Link
+                href={`/${currentCity.slug}/map`}
+                onClick={() => setMobileOpen(false)}
+                className={cn(
+                  "flex items-center gap-3 px-2 py-2.5 rounded-lg transition-colors",
+                  pathname === `/${currentCity.slug}/map`
+                    ? "text-accent bg-surface"
+                    : "text-text-muted hover:text-text hover:bg-surface"
+                )}
+              >
+                <MapPin className="w-4 h-4" aria-hidden="true" />
+                Map View
+              </Link>
+              <Link
+                href="/saved"
+                onClick={() => setMobileOpen(false)}
+                className={cn(
+                  "flex items-center gap-3 px-2 py-2.5 rounded-lg transition-colors",
+                  pathname === "/saved"
+                    ? "text-accent bg-surface"
+                    : "text-text-muted hover:text-text hover:bg-surface"
+                )}
+              >
+                <Star className="w-4 h-4" aria-hidden="true" />
+                Saved
+              </Link>
+            </div>
+
+            <div className="h-px bg-border" />
+
+            {/* City */}
+            <div className="py-4 space-y-2">
               <p className="text-xs uppercase tracking-wider text-text-muted">City</p>
               <div className="flex flex-wrap gap-2">
                 {cities.map((city) =>
@@ -194,7 +338,7 @@ export default function Nav() {
                       className={cn(
                         "px-3 py-1.5 text-sm rounded-full transition-colors",
                         city.slug === currentCity.slug
-                          ? "bg-accent text-bg"
+                          ? "bg-accent text-bg font-medium"
                           : "bg-surface text-text-muted"
                       )}
                     >
@@ -213,62 +357,13 @@ export default function Nav() {
               </div>
             </div>
 
-            {/* Date filters */}
-            <div className="space-y-2">
-              <p className="text-xs uppercase tracking-wider text-text-muted">When</p>
-              <div className="flex flex-wrap gap-2">
-                {dateFilters.map((filter) => (
-                  <Link
-                    key={filter.label}
-                    href={filter.href}
-                    onClick={() => setMobileOpen(false)}
-                    className={cn(
-                      "px-3 py-1.5 text-sm rounded-full transition-colors",
-                      pathname === filter.href
-                        ? "bg-accent text-bg"
-                        : "bg-surface text-text-muted"
-                    )}
-                  >
-                    {filter.label}
-                  </Link>
-                ))}
-              </div>
-            </div>
-
-            <Search />
-
-            {/* Venues + Map links */}
-            <Link
-              href={`/${currentCity.slug}/venues`}
-              onClick={() => setMobileOpen(false)}
-              className="flex items-center gap-2 text-text-muted hover:text-text py-2"
-            >
-              <Music className="w-4 h-4" aria-hidden="true" />
-              Venues
-            </Link>
-            <Link
-              href={`/${currentCity.slug}/map`}
-              onClick={() => setMobileOpen(false)}
-              className="flex items-center gap-2 text-text-muted hover:text-text py-2"
-            >
-              <MapPin className="w-4 h-4" aria-hidden="true" />
-              Map View
-            </Link>
-            <Link
-              href="/saved"
-              onClick={() => setMobileOpen(false)}
-              className="flex items-center gap-2 text-text-muted hover:text-text py-2"
-            >
-              <Star className="w-4 h-4" aria-hidden="true" />
-              Saved
-            </Link>
-
-            <div className="pt-2 border-t border-border">
+            {/* Account */}
+            <div className="flex justify-end pt-4">
               <UserMenu />
             </div>
           </div>
-        </div>
-      )}
+        </SheetContent>
+      </Sheet>
     </nav>
   );
 }

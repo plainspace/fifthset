@@ -74,7 +74,7 @@ export default function Search() {
         className="flex items-center gap-2 px-3 py-1.5 text-sm text-text-muted hover:text-text bg-surface rounded-lg transition-colors"
       >
         <SearchIcon className="w-4 h-4" aria-hidden="true" />
-        <span className="hidden sm:inline">Search</span>
+        <span>Search</span>
         <kbd className="hidden sm:inline text-xs text-text-muted/60 ml-1">⌘K</kbd>
       </button>
     );

@@ -134,6 +134,16 @@ body {
 .grid > .card-enter:nth-child(8) { animation-delay: 210ms; }
 .grid > .card-enter:nth-child(9) { animation-delay: 240ms; }
 
+/* Bottom sheet slide up */
+@keyframes slide-up {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.25s ease-out;
+}
+
 /* Hide scrollbar */
 .scrollbar-hide {
   -ms-overflow-style: none;
@@ -147,7 +157,8 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .animate-pulse-live,
   .animate-fade-in,
-  .card-enter {
+  .card-enter,
+  .animate-slide-up {
     animation: none !important;
   }
   * {

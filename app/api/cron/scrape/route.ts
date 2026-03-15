@@ -78,10 +78,6 @@ export async function GET(request: NextRequest) {
       timestamp: new Date().toISOString(),
     };
 
-    if (allErrors.length > 0) {
-      await sendAlert(summary, allErrors);
-    }
-
     await sendSummary(summary, allErrors);
 
     return NextResponse.json(summary);
@@ -90,7 +86,7 @@ export async function GET(request: NextRequest) {
       error instanceof Error ? error.message : "Unknown error";
     console.error("Scrape cron failed:", message);
 
-    await sendAlert(
+    await sendSummary(
       { error: message, timestamp: new Date().toISOString() },
       [message]
     );
@@ -211,33 +207,3 @@ async function sendSummary(
   }
 }
 
-async function sendAlert(
-  summary: Record<string, unknown>,
-  errors: string[]
-) {
-  const resendKey = process.env.RESEND_API_KEY;
-  if (!resendKey) {
-    console.warn("No RESEND_API_KEY, skipping alert email");
-    return;
-  }
-
-  const body = `Fifth Set scraper alert:\n\n${JSON.stringify(summary, null, 2)}\n\nErrors:\n${errors.join("\n")}`;
-
-  try {
-    await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${resendKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        from: "Fifth Set <noreply@fifthset.live>",
-        to: ["jared@fifthset.live"],
-        subject: "Fifth Set Scraper Alert",
-        text: body,
-      }),
-    });
-  } catch (e) {
-    console.error("Failed to send alert email:", e);
-  }
-}

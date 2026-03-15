@@ -75,7 +75,9 @@ function normalizeVenueName(name: string): string {
 // Slug that ignores leading "The" for matching purposes
 function venueSlug(name: string): string {
   const normalized = normalizeVenueName(name);
-  const forSlug = normalized.replace(/^the\s+/i, "");
+  const forSlug = normalized
+    .replace(/[\u2018\u2019\u201A\u201B\u02BC\u02B9\u0060\u00B4]/g, "'") // normalize apostrophe variants to straight quote
+    .replace(/^the\s+/i, "");
   return slugify(forSlug);
 }
 

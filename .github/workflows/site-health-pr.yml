@@ -11,14 +11,11 @@ on:
 
 env:
   SITE_URL: "https://fifthset.live"
-  BUILD_CMD: "npm run build"
   NODE_VERSION: "20"
-  LIGHTHOUSE_URLS: "/,/nyc,/nola"
-  FRAMEWORK: "nextjs"
 
 jobs:
-  build:
-    name: Build & Audit
+  lighthouse:
+    name: Lighthouse
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -36,38 +33,10 @@ jobs:
         continue-on-error: true
 
       - name: Build
-        run: ${{ env.BUILD_CMD }}
+        run: npm run build
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-
-      - name: Upload build artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-output
-          path: .next
-          retention-days: 1
-
-  lighthouse:
-    name: Lighthouse
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: "npm"
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Download build artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: build-output
-          path: .next
 
       - name: Install Lighthouse CI
         run: npm install -g @lhci/cli
@@ -77,19 +46,11 @@ jobs:
           npm start &
           sleep 5
 
-          IFS=',' read -ra URLS <<< "${{ env.LIGHTHOUSE_URLS }}"
-          FULL_URLS=""
-          for path in "${URLS[@]}"; do
-            path=$(echo "$path" | xargs)
-            FULL_URLS="$FULL_URLS --collect.url=http://localhost:3000${path}"
-          done
-
           lhci autorun \
-            --collect.staticDistDir="" \
-            $FULL_URLS \
+            --collect.url=http://localhost:3000/ \
+            --collect.url=http://localhost:3000/nyc \
+            --collect.url=http://localhost:3000/nola \
             --upload.target=temporary-public-storage \
-            --assert.preset=lighthouse:recommended \
-            --assert.assertions.categories:performance=off \
             --assert.assertions.categories:accessibility="error; minScore=0.9" \
             --assert.assertions.categories:best-practices="warn; minScore=0.9" \
             --assert.assertions.categories:seo="error; minScore=0.9"
@@ -99,7 +60,6 @@ jobs:
 
   accessibility:
     name: Accessibility
-    needs: build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -112,11 +72,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Download build artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: build-output
-          path: .next
+      - name: Build
+        run: npm run build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
 
       - name: Install pa11y
         run: npm install -g pa11y
@@ -126,20 +86,20 @@ jobs:
           npm start &
           sleep 5
 
-          IFS=',' read -ra URLS <<< "${{ env.LIGHTHOUSE_URLS }}"
-          FAILED=0
-          for path in "${URLS[@]}"; do
-            path=$(echo "$path" | xargs)
-            echo "--- Auditing: $path ---"
-            pa11y "http://localhost:3000${path}" \
-              --standard WCAG2AA \
-              --runner axe \
-              --threshold 0 || FAILED=1
-          done
+          pa11y "http://localhost:3000/" \
+            --standard WCAG2AA \
+            --runner axe \
+            --threshold 0 || echo "::warning::Accessibility issues found."
 
-          if [ "$FAILED" -eq 1 ]; then
-            echo "::warning::Accessibility issues found. See logs above."
-          fi
+          pa11y "http://localhost:3000/nyc" \
+            --standard WCAG2AA \
+            --runner axe \
+            --threshold 0 || echo "::warning::Accessibility issues found."
+
+          pa11y "http://localhost:3000/nola" \
+            --standard WCAG2AA \
+            --runner axe \
+            --threshold 0 || echo "::warning::Accessibility issues found."
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}

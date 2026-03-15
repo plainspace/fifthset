@@ -1,0 +1,207 @@
+# Site Health: Scheduled Checks
+# Canonical version: marvin/content/vault/work/artifacts/site-health-workflows/
+
+name: Site Health (Scheduled)
+
+on:
+  schedule:
+    - cron: "0 14 * * 1"
+  workflow_dispatch: {}
+
+env:
+  SITE_URL: "https://fifthset.live"
+  EXTRA_URLS: "https://fifthset.live/nyc,https://fifthset.live/nola"
+  NODE_VERSION: "20"
+
+jobs:
+  broken-links:
+    name: Broken Links
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Check for broken links
+        run: |
+          npx linkinator ${{ env.SITE_URL }} \
+            --recurse \
+            --timeout 30000 \
+            --retry \
+            --retry-errors \
+            --skip "^mailto:" \
+            --format csv \
+            | tee linkinator-report.csv
+
+          if grep -q ",BROKEN," linkinator-report.csv 2>/dev/null; then
+            echo "::error::Broken links detected. See report above."
+            exit 1
+          fi
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: broken-links-report
+          path: linkinator-report.csv
+          retention-days: 30
+
+  security-headers:
+    name: Security Headers
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check security headers
+        run: |
+          URL="${{ env.SITE_URL }}"
+          echo "Checking headers for: $URL"
+          echo ""
+
+          HEADERS=$(curl -sI "$URL")
+          echo "$HEADERS"
+          echo ""
+
+          ISSUES=0
+
+          check_header() {
+            local name="$1"
+            local severity="$2"
+            if echo "$HEADERS" | grep -qi "^${name}:"; then
+              echo "PASS: $name"
+            else
+              echo "FAIL: $name (${severity})"
+              if [ "$severity" = "critical" ]; then
+                ISSUES=1
+              fi
+            fi
+          }
+
+          echo "--- Header Check Results ---"
+          check_header "strict-transport-security" "critical"
+          check_header "content-security-policy" "critical"
+          check_header "x-content-type-options" "high"
+          check_header "x-frame-options" "high"
+          check_header "referrer-policy" "medium"
+          check_header "permissions-policy" "medium"
+
+          HTTP_STATUS=$(curl -sI -o /dev/null -w "%{http_code}" "http://$(echo $URL | sed 's|https://||')" 2>/dev/null || echo "000")
+          if [ "$HTTP_STATUS" = "301" ] || [ "$HTTP_STATUS" = "308" ]; then
+            echo "PASS: HTTP->HTTPS redirect ($HTTP_STATUS)"
+          else
+            echo "WARN: HTTP->HTTPS redirect returned $HTTP_STATUS"
+          fi
+
+          if [ "$ISSUES" -eq 1 ]; then
+            echo ""
+            echo "::error::Critical security headers missing."
+            exit 1
+          fi
+
+  structured-data:
+    name: Structured Data
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check JSON-LD / Schema.org
+        run: |
+          URL="${{ env.SITE_URL }}"
+          echo "Checking structured data for: $URL"
+
+          PAGE=$(curl -sL "$URL")
+          JSONLD=$(echo "$PAGE" | python3 -c "
+          import sys, re, json
+          html = sys.stdin.read()
+          blocks = re.findall(r'<script[^>]*type=[\"'\"'\"']application/ld\+json[\"'\"'\"'][^>]*>(.*?)</script>', html, re.DOTALL)
+          if not blocks:
+              print('NO_JSONLD_FOUND')
+              sys.exit(0)
+          for i, block in enumerate(blocks):
+              try:
+                  data = json.loads(block)
+                  print(f'Block {i+1}: valid JSON-LD')
+                  if isinstance(data, dict):
+                      print(f'  @type: {data.get(\"@type\", \"MISSING\")}')
+                      if not data.get('@type'):
+                          print('  WARN: No @type field')
+                  elif isinstance(data, list):
+                      for item in data:
+                          print(f'  @type: {item.get(\"@type\", \"MISSING\")}')
+              except json.JSONDecodeError as e:
+                  print(f'Block {i+1}: INVALID JSON - {e}')
+          ")
+
+          echo "$JSONLD"
+
+          if echo "$JSONLD" | grep -q "NO_JSONLD_FOUND"; then
+            echo ""
+            echo "::warning::No JSON-LD structured data found on homepage."
+          fi
+
+          if echo "$JSONLD" | grep -q "INVALID JSON"; then
+            echo ""
+            echo "::error::Invalid JSON-LD found."
+            exit 1
+          fi
+
+  ssl-check:
+    name: SSL Certificate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check SSL expiry
+        run: |
+          DOMAIN=$(echo "${{ env.SITE_URL }}" | sed 's|https://||' | sed 's|/.*||')
+          echo "Checking SSL for: $DOMAIN"
+
+          EXPIRY=$(echo | openssl s_client -servername "$DOMAIN" -connect "$DOMAIN:443" 2>/dev/null \
+            | openssl x509 -noout -enddate 2>/dev/null \
+            | cut -d= -f2)
+
+          if [ -z "$EXPIRY" ]; then
+            echo "::error::Could not retrieve SSL certificate."
+            exit 1
+          fi
+
+          EXPIRY_EPOCH=$(date -d "$EXPIRY" +%s 2>/dev/null)
+          NOW_EPOCH=$(date +%s)
+          DAYS_LEFT=$(( (EXPIRY_EPOCH - NOW_EPOCH) / 86400 ))
+
+          echo "Certificate expires: $EXPIRY"
+          echo "Days remaining: $DAYS_LEFT"
+
+          if [ "$DAYS_LEFT" -lt 14 ]; then
+            echo "::error::SSL certificate expires in $DAYS_LEFT days!"
+            exit 1
+          elif [ "$DAYS_LEFT" -lt 30 ]; then
+            echo "::warning::SSL certificate expires in $DAYS_LEFT days."
+          else
+            echo "SSL certificate is healthy."
+          fi
+
+  uptime:
+    name: Uptime Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check site responds
+        run: |
+          ALL_URLS="${{ env.SITE_URL }}"
+          if [ -n "${{ env.EXTRA_URLS }}" ]; then
+            ALL_URLS="$ALL_URLS,${{ env.EXTRA_URLS }}"
+          fi
+
+          FAILED=0
+          IFS=',' read -ra URLS <<< "$ALL_URLS"
+          for url in "${URLS[@]}"; do
+            url=$(echo "$url" | xargs)
+            STATUS=$(curl -sI -o /dev/null -w "%{http_code}" "$url" --max-time 10)
+            TIMING=$(curl -so /dev/null -w "DNS: %{time_namelookup}s | Connect: %{time_connect}s | TTFB: %{time_starttransfer}s | Total: %{time_total}s" "$url" --max-time 10)
+
+            if [ "$STATUS" -ge 200 ] && [ "$STATUS" -lt 400 ]; then
+              echo "PASS: $url ($STATUS) - $TIMING"
+            else
+              echo "FAIL: $url ($STATUS) - $TIMING"
+              FAILED=1
+            fi
+          done
+
+          if [ "$FAILED" -eq 1 ]; then
+            echo "::error::One or more URLs failed the uptime check."
+            exit 1
+          fi

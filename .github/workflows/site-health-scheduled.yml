@@ -1,19 +1,30 @@
 # Site Health: Scheduled Checks
 # Canonical version: marvin/content/vault/work/artifacts/site-health-workflows/
+#
+# Runs weekly (Monday 10 AM ET) and on manual trigger.
+# Checks: broken links, security headers, structured data, SSL, uptime, performance.
+# Creates a GitHub issue on failure with a summary of what broke.
+#
+# Customize the env block below for each project.
 
 name: Site Health (Scheduled)
 
 on:
   schedule:
-    - cron: "0 14 * * 1"
+    - cron: "0 14 * * 1"  # Monday 10 AM ET (14:00 UTC)
   workflow_dispatch: {}
 
+# ---- CUSTOMIZE PER PROJECT ----
 env:
   SITE_URL: "https://fifthset.live"
+  # Additional URLs to check (comma-separated, full URLs)
   EXTRA_URLS: "https://fifthset.live/nyc,https://fifthset.live/nola"
   NODE_VERSION: "20"
 
 jobs:
+  # ------------------------------------------------
+  # 1. Broken links
+  # ------------------------------------------------
   broken-links:
     name: Broken Links
     runs-on: ubuntu-latest
@@ -35,7 +46,11 @@ jobs:
             | tee linkinator-report.csv
 
           if grep -q ",BROKEN," linkinator-report.csv 2>/dev/null; then
-            echo "::error::Broken links detected. See report above."
+            echo ""
+            echo "--- Broken URLs ---"
+            grep ",BROKEN," linkinator-report.csv | cut -d',' -f1 | sort -u | while read -r url; do
+              echo "::error::Broken: $url"
+            done
             exit 1
           fi
 
@@ -47,6 +62,9 @@ jobs:
           path: linkinator-report.csv
           retention-days: 30
 
+  # ------------------------------------------------
+  # 2. Security headers
+  # ------------------------------------------------
   security-headers:
     name: Security Headers
     runs-on: ubuntu-latest
@@ -84,6 +102,7 @@ jobs:
           check_header "referrer-policy" "medium"
           check_header "permissions-policy" "medium"
 
+          # Check HTTPS redirect
           HTTP_STATUS=$(curl -sI -o /dev/null -w "%{http_code}" "http://$(echo $URL | sed 's|https://||')" 2>/dev/null || echo "000")
           if [ "$HTTP_STATUS" = "301" ] || [ "$HTTP_STATUS" = "308" ]; then
             echo "PASS: HTTP->HTTPS redirect ($HTTP_STATUS)"
@@ -97,6 +116,9 @@ jobs:
             exit 1
           fi
 
+  # ------------------------------------------------
+  # 3. Structured data validation
+  # ------------------------------------------------
   structured-data:
     name: Structured Data
     runs-on: ubuntu-latest
@@ -106,6 +128,7 @@ jobs:
           URL="${{ env.SITE_URL }}"
           echo "Checking structured data for: $URL"
 
+          # Fetch page and extract JSON-LD blocks
           PAGE=$(curl -sL "$URL")
           JSONLD=$(echo "$PAGE" | python3 -c "
           import sys, re, json
@@ -142,6 +165,9 @@ jobs:
             exit 1
           fi
 
+  # ------------------------------------------------
+  # 4. SSL certificate check
+  # ------------------------------------------------
   ssl-check:
     name: SSL Certificate
     runs-on: ubuntu-latest
@@ -176,6 +202,9 @@ jobs:
             echo "SSL certificate is healthy."
           fi
 
+  # ------------------------------------------------
+  # 5. Uptime / response check
+  # ------------------------------------------------
   uptime:
     name: Uptime Check
     runs-on: ubuntu-latest
@@ -206,3 +235,91 @@ jobs:
             echo "::error::One or more URLs failed the uptime check."
             exit 1
           fi
+
+  # ------------------------------------------------
+  # 6. Performance (Lighthouse)
+  # ------------------------------------------------
+  performance:
+    name: Performance
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Run Lighthouse
+        run: |
+          npm install -g @lhci/cli@0.14.x
+          URL="${{ env.SITE_URL }}"
+
+          lhci collect --url="$URL" --numberOfRuns=1 \
+            --settings.chromeFlags="--no-sandbox --headless"
+
+          lhci upload --target=temporary-public-storage || true
+
+          REPORT=$(find .lighthouseci -name "lhr-*.json" | head -1)
+          if [ -z "$REPORT" ]; then
+            echo "::error::Lighthouse failed to generate a report."
+            exit 1
+          fi
+
+          echo "--- Lighthouse Scores ---"
+          node -e "
+            const r = require('./' + process.argv[1]);
+            const scores = {
+              Performance: r.categories.performance.score,
+              Accessibility: r.categories.accessibility.score,
+              'Best Practices': r.categories['best-practices'].score,
+              SEO: r.categories.seo.score
+            };
+            let failed = false;
+            for (const [k, v] of Object.entries(scores)) {
+              const pct = Math.round(v * 100);
+              const status = pct >= 50 ? 'PASS' : 'FAIL';
+              console.log(status + ': ' + k + ' ' + pct);
+              if (pct < 50) {
+                console.log('::error::' + k + ' score is ' + pct + ' (below 50)');
+                failed = true;
+              } else if (pct < 80) {
+                console.log('::warning::' + k + ' score is ' + pct + ' (below 80)');
+              }
+            }
+            if (failed) process.exit(1);
+          " "$REPORT"
+
+  # ------------------------------------------------
+  # 7. Notify on failure (GitHub Issue)
+  # ------------------------------------------------
+  notify:
+    name: Notify on Failure
+    runs-on: ubuntu-latest
+    needs: [broken-links, security-headers, structured-data, ssl-check, uptime, performance]
+    if: failure()
+    permissions:
+      issues: write
+    steps:
+      - name: Create GitHub issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const jobs = [
+              'broken-links', 'security-headers', 'structured-data',
+              'ssl-check', 'uptime', 'performance'
+            ];
+            const run = await github.rest.actions.listJobsForWorkflowRun({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: context.runId,
+            });
+            const failed = run.data.jobs
+              .filter(j => j.conclusion === 'failure')
+              .map(j => `- **${j.name}**`)
+              .join('\n');
+            const url = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `Site Health: failures detected (${new Date().toISOString().split('T')[0]})`,
+              body: `## Failed checks\n\n${failed}\n\n[View run](${url})`,
+              labels: ['site-health'],
+            });

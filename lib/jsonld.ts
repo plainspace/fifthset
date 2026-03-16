@@ -8,7 +8,6 @@ export function organizationSchema() {
     "@type": "Organization",
     name: "Fifth Set",
     url: SITE_URL,
-    logo: `${SITE_URL}/logo.png`,
     description:
       "Find live jazz tonight. Listings, maps, and venue guides for jazz in NYC and beyond.",
     sameAs: [],

@@ -32,7 +32,7 @@ export async function generateMetadata({
       description,
       images: [
         venue.photo_url
-          ? { url: venue.photo_url, width: 1200, height: 630 }
+          ? { url: venue.photo_url.replace(/^http:\/\//i, 'https://'), width: 1200, height: 630 }
           : {
               url: `/api/og?title=${encodeURIComponent(venue.name)}&subtitle=${encodeURIComponent(venue.neighborhood || city!.name)}&type=venue`,
               width: 1200,
@@ -64,6 +64,8 @@ export default async function VenueDetailPage({
   const isFeatured =
     venue.sponsor_tier === 'marquee' || venue.sponsor_tier === 'spotlight';
 
+  const photoUrl = venue.photo_url?.replace(/^http:\/\//i, 'https://');
+
   const events = await getVenueEvents(supabase, venue.id);
 
   const eventsByDate = events.reduce<Record<string, typeof events>>(
@@ -90,14 +92,14 @@ export default async function VenueDetailPage({
       <div
         className={cn(
           'relative rounded-2xl overflow-hidden',
-          venue.photo_url ? 'min-h-[280px] sm:min-h-[320px]' : 'bg-surface',
+          photoUrl ? 'min-h-[280px] sm:min-h-[320px]' : 'bg-surface',
           isFeatured && 'featured-border',
         )}
       >
-        {venue.photo_url ? (
+        {photoUrl ? (
           <>
             <Image
-              src={venue.photo_url}
+              src={photoUrl}
               alt={venue.name}
               fill
               className="object-cover"

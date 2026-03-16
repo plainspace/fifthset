@@ -30,6 +30,7 @@ jobs:
             --retry \
             --retry-errors \
             --skip "^mailto:" \
+            --skip "\?q=\{search_term_string\}" \
             --format csv \
             | tee linkinator-report.csv
 
@@ -56,7 +57,7 @@ jobs:
           echo "Checking headers for: $URL"
           echo ""
 
-          HEADERS=$(curl -sI "$URL")
+          HEADERS=$(curl -sIL "$URL")
           echo "$HEADERS"
           echo ""
 

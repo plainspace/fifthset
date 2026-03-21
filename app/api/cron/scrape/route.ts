@@ -15,6 +15,9 @@ export async function GET(request: NextRequest) {
   try {
     const { scrapeJazzNYC } = await import("@/scraper/scrape");
     const { scrapeWWOZ } = await import("@/scraper/scrape-nola");
+    const { scrapeChicago } = await import("@/scraper/scrape-chicago");
+    const { scrapeDC } = await import("@/scraper/scrape-dc");
+    const { scrapePhilly } = await import("@/scraper/scrape-philly");
     const { normalizeScrapedData } = await import("@/scraper/normalize");
     const { pushToSupabase, cleanupStaleEvents } = await import(
       "@/scraper/push-to-db"
@@ -57,7 +60,6 @@ export async function GET(request: NextRequest) {
         inserted: stats.eventsInserted,
         skipped: stats.eventsSkipped,
       };
-      // NOLA is new... don't alert on 0 events until selectors are tuned
       if (stats.errors.length > 10) {
         allErrors.push(`NOLA anomaly: ${stats.errors.length} errors`);
       }
@@ -66,6 +68,72 @@ export async function GET(request: NextRequest) {
       const msg = e instanceof Error ? e.message : String(e);
       results.nola = { error: msg };
       allErrors.push(`NOLA failed: ${msg}`);
+    }
+
+    // --- Chicago ---
+    try {
+      const scraped = await scrapeChicago();
+      const normalized = normalizeScrapedData(scraped, "chicago");
+      const stats = await pushToSupabase(normalized, "chicago", "https://www.jazzinchicago.org");
+      results.chicago = {
+        scraped: scraped.length,
+        normalized: normalized.events.length,
+        rejected: normalized.rejected.length,
+        inserted: stats.eventsInserted,
+        skipped: stats.eventsSkipped,
+      };
+      if (stats.errors.length > 10) {
+        allErrors.push(`Chicago anomaly: ${stats.errors.length} errors`);
+      }
+      allErrors.push(...stats.errors);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      results.chicago = { error: msg };
+      allErrors.push(`Chicago failed: ${msg}`);
+    }
+
+    // --- DC ---
+    try {
+      const scraped = await scrapeDC();
+      const normalized = normalizeScrapedData(scraped, "dc");
+      const stats = await pushToSupabase(normalized, "dc", "https://www.capitalbop.com");
+      results.dc = {
+        scraped: scraped.length,
+        normalized: normalized.events.length,
+        rejected: normalized.rejected.length,
+        inserted: stats.eventsInserted,
+        skipped: stats.eventsSkipped,
+      };
+      if (stats.errors.length > 10) {
+        allErrors.push(`DC anomaly: ${stats.errors.length} errors`);
+      }
+      allErrors.push(...stats.errors);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      results.dc = { error: msg };
+      allErrors.push(`DC failed: ${msg}`);
+    }
+
+    // --- Philly ---
+    try {
+      const scraped = await scrapePhilly();
+      const normalized = normalizeScrapedData(scraped, "philly");
+      const stats = await pushToSupabase(normalized, "philly");
+      results.philly = {
+        scraped: scraped.length,
+        normalized: normalized.events.length,
+        rejected: normalized.rejected.length,
+        inserted: stats.eventsInserted,
+        skipped: stats.eventsSkipped,
+      };
+      if (stats.errors.length > 10) {
+        allErrors.push(`Philly anomaly: ${stats.errors.length} errors`);
+      }
+      allErrors.push(...stats.errors);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      results.philly = { error: msg };
+      allErrors.push(`Philly failed: ${msg}`);
     }
 
     // Cleanup stale events (all cities)
@@ -102,8 +170,14 @@ async function sendSummary(
   const resendKey = process.env.RESEND_API_KEY;
   if (!resendKey) return;
 
-  const nyc = summary.nyc as Record<string, unknown> | undefined;
-  const nola = summary.nola as Record<string, unknown> | undefined;
+  const cityKeys = [
+    { key: "nyc", label: "NYC" },
+    { key: "nola", label: "NOLA" },
+    { key: "chicago", label: "Chicago" },
+    { key: "dc", label: "DC" },
+    { key: "philly", label: "Philly" },
+  ];
+
   const cleaned = summary.cleaned as number | undefined;
   const timestamp = summary.timestamp as string;
   const date = new Date(timestamp).toLocaleDateString("en-US", {
@@ -162,8 +236,7 @@ async function sendSummary(
           </tr>
         </thead>
         <tbody>
-          ${cityRow("NYC", nyc)}
-          ${cityRow("NOLA", nola)}
+          ${cityKeys.map(({ key, label }) => cityRow(label, summary[key] as Record<string, unknown> | undefined)).join("")}
         </tbody>
       </table>
 
@@ -184,9 +257,14 @@ async function sendSummary(
       </p>
     </div>`;
 
+  const totalInserted = cityKeys.reduce((sum, { key }) => {
+    const data = summary[key] as Record<string, unknown> | undefined;
+    return sum + (data && !data.error ? (data.inserted as number) || 0 : 0);
+  }, 0);
+
   const subject = hasErrors
     ? `Scraper Report: ${errors.length} issue${errors.length === 1 ? "" : "s"} - ${date}`
-    : `Scraper Report: ${(nyc && !nyc.error ? (nyc.inserted as number) : 0) + (nola && !nola.error ? (nola.inserted as number) : 0)} new events - ${date}`;
+    : `Scraper Report: ${totalInserted} new events - ${date}`;
 
   try {
     await fetch("https://api.resend.com/emails", {

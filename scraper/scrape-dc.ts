@@ -177,7 +177,7 @@ interface CapitalBopEvent {
     slug: string;
   }[];
   ticket_link: { url: string; title: string; target: string } | null;
-  musicians_website: string | null;
+  musicians_website: string | { url: string; title: string; target: string } | null;
   cb_pick: boolean;
   cb_show: boolean;
 }
@@ -352,7 +352,9 @@ export async function scrapeDC(): Promise<ScrapedEvent[]> {
 
     // Build venue URL from ticket link or musician's website
     const venueUrl = evt.ticket_link?.url || undefined;
-    const artistUrl = evt.musicians_website || undefined;
+    const artistUrl = typeof evt.musicians_website === "string"
+      ? evt.musicians_website
+      : (evt.musicians_website as { url?: string } | null)?.url || undefined;
 
     events.push({
       date,

@@ -69,7 +69,7 @@ export async function pushToSupabase(
         neighborhood: venue.region,
         sponsor_tier: "free",
       },
-      { onConflict: "city_id,name" }
+      { onConflict: "city_id,slug" }
     );
     if (error) {
       stats.errors.push(`Venue upsert failed (${venue.name}): ${error.message}`);

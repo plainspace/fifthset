@@ -3,7 +3,7 @@ import { isAllowedByRobots } from "./check-robots";
 
 // =============================================================================
 // WWOZ Livewire Scraper for New Orleans
-// Source: https://www.wwoz.org/livewire
+// Source: https://www.wwoz.org/calendar/livewire-music
 //
 // Structure: Page is organized by VENUE, not by date.
 //   .livewire-listing          = venue container
@@ -207,7 +207,7 @@ function lookupRegion(venueName: string): string {
 // --- Main scraper ---
 
 export async function scrapeWWOZ(): Promise<ScrapedEvent[]> {
-  const targetUrl = "https://www.wwoz.org/livewire";
+  const targetUrl = "https://www.wwoz.org/calendar/livewire-music";
   const ua = "FifthSet/1.0 (https://fifthset.live; hello@fifthset.live)";
 
   const allowed = await isAllowedByRobots(targetUrl, ua);

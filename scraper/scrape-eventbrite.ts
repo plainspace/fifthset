@@ -41,6 +41,58 @@ function normalizeText(str: string): string {
     .replace(/&quot;/g, '"');
 }
 
+// --- Event quality filters ---
+// Eventbrite search for "jazz" returns non-jazz and non-performance events.
+// These patterns catch the worst offenders.
+
+const SKIP_PATTERNS = [
+  /\btrivia\b/i,
+  /\bgame\s*night\b/i,
+  /\bsing-?a-?long/i,
+  /\bkaraoke\b/i,
+  /\bworkshop\b/i,
+  /\bclass\b/i,
+  /\bjournal/i,
+  /\byoga\b/i,
+  /\bmeditat/i,
+  /\bnetworking\b/i,
+  /\bmixer\b/i,
+  /\bfundraiser\b/i,
+  /\bauction\b/i,
+  /\bgala\b(?!.*concert)/i,
+  /\bcruise\b/i,
+  /\btour\b(?!.*concert)/i,
+];
+
+// Events that are just a genre word with no artist info
+const EMPTY_TITLE_PATTERNS = /^(jazz\s*brunch|jazz\s*night|live\s*jazz|jazz|jazz\s*music|smooth\s*jazz)$/i;
+
+function isLikelyJazzPerformance(name: string): boolean {
+  if (EMPTY_TITLE_PATTERNS.test(name.trim())) return false;
+  for (const pattern of SKIP_PATTERNS) {
+    if (pattern.test(name)) return false;
+  }
+  return true;
+}
+
+// Strip redundant venue name from event titles
+// "Brass-A-Holics at The Jazz Playhouse" -> "Brass-A-Holics"
+// "Dirty Works Jazz Jam @ The Shoe" -> "Dirty Works Jazz Jam"
+function cleanArtistName(name: string, venueName: string): string {
+  // Remove "at Venue" or "@ Venue" suffix
+  const cleaned = name
+    .replace(new RegExp(`\\s*[@]\\s*${escapeRegex(venueName)}\\s*$`, "i"), "")
+    .replace(new RegExp(`\\s+at\\s+(?:the\\s+)?${escapeRegex(venueName)}\\s*$`, "i"), "")
+    .trim();
+
+  // If stripping left us with nothing, keep the original
+  return cleaned || name;
+}
+
+function escapeRegex(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 // --- City configuration ---
 // Maps our city slugs to Eventbrite URL paths
 
@@ -288,8 +340,11 @@ export async function scrapeEventbrite(citySlug: string): Promise<ScrapedEvent[]
     if (pageEvents.length === 0) break; // No more pages
 
     for (const evt of pageEvents) {
-      const artistName = normalizeText(evt.name || "").trim();
-      if (!artistName) continue;
+      const rawName = normalizeText(evt.name || "").trim();
+      if (!rawName) continue;
+
+      // Filter out non-jazz and non-performance events
+      if (!isLikelyJazzPerformance(rawName)) continue;
 
       // Eventbrite sometimes puts the street address in location.name
       // instead of the venue name. Detect and skip these.
@@ -298,7 +353,7 @@ export async function scrapeEventbrite(citySlug: string): Promise<ScrapedEvent[]
 
       if (looksLikeAddress(venueName)) {
         // Try to extract venue name from the event title ("... at Venue")
-        const atMatch = artistName.match(/\bat\s+(.+)$/i);
+        const atMatch = rawName.match(/\bat\s+(.+)$/i);
         if (atMatch) {
           venueName = normalizeText(atMatch[1]).trim();
         } else {
@@ -306,6 +361,9 @@ export async function scrapeEventbrite(citySlug: string): Promise<ScrapedEvent[]
           continue;
         }
       }
+
+      // Strip redundant venue name from event title
+      const artistName = cleanArtistName(rawName, venueName);
 
       const date = evt.startDate;
       if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) continue;

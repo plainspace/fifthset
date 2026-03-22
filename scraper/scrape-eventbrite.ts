@@ -302,9 +302,8 @@ export async function scrapeEventbrite(citySlug: string): Promise<ScrapedEvent[]
         if (atMatch) {
           venueName = normalizeText(atMatch[1]).trim();
         } else {
-          // Use locality as a fallback venue identifier
-          const locality = evt.location?.address?.addressLocality || "";
-          venueName = locality || venueName;
+          // Can't determine a real venue name, skip this event
+          continue;
         }
       }
 

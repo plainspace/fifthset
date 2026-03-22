@@ -106,7 +106,11 @@ export async function pushToSupabase(
 
   const venueIdMap = new Map((dbVenues || []).map((v) => [v.slug, v.id]));
 
-  const { data: dbArtists } = await supabase.from("artists").select("id, slug");
+  const artistSlugs = data.artists.map((a) => a.slug);
+  const { data: dbArtists } = await supabase
+    .from("artists")
+    .select("id, slug")
+    .in("slug", artistSlugs);
 
   const artistIdMap = new Map((dbArtists || []).map((a) => [a.slug, a.id]));
 

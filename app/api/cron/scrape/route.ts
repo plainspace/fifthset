@@ -18,6 +18,9 @@ export async function GET(request: NextRequest) {
     const { scrapeChicago } = await import("@/scraper/scrape-chicago");
     const { scrapeDC } = await import("@/scraper/scrape-dc");
     const { scrapePhilly } = await import("@/scraper/scrape-philly");
+    const { scrapeEventbrite, getEventbriteCitySlugs } = await import(
+      "@/scraper/scrape-eventbrite"
+    );
     const { normalizeScrapedData } = await import("@/scraper/normalize");
     const { pushToSupabase, cleanupStaleEvents } = await import(
       "@/scraper/push-to-db"
@@ -136,6 +139,40 @@ export async function GET(request: NextRequest) {
       allErrors.push(`Philly failed: ${msg}`);
     }
 
+    // --- Eventbrite (all cities) ---
+    for (const ebCity of getEventbriteCitySlugs()) {
+      try {
+        const scraped = await scrapeEventbrite(ebCity);
+        if (scraped.length === 0) continue;
+        const normalized = normalizeScrapedData(scraped, ebCity);
+        const stats = await pushToSupabase(
+          normalized,
+          ebCity,
+          "https://www.eventbrite.com"
+        );
+
+        // Merge into existing city results or create new
+        const existing = results[ebCity] as Record<string, unknown> | undefined;
+        if (existing && !existing.error) {
+          existing.eb_scraped = scraped.length;
+          existing.eb_inserted = stats.eventsInserted;
+        } else if (!existing) {
+          results[ebCity] = {
+            scraped: scraped.length,
+            normalized: normalized.events.length,
+            rejected: normalized.rejected.length,
+            inserted: stats.eventsInserted,
+            skipped: stats.eventsSkipped,
+            source: "eventbrite",
+          };
+        }
+        allErrors.push(...stats.errors);
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        allErrors.push(`Eventbrite ${ebCity} failed: ${msg}`);
+      }
+    }
+
     // Cleanup stale events (all cities)
     const cleaned = await cleanupStaleEvents();
 
@@ -176,6 +213,8 @@ async function sendSummary(
     { key: "chicago", label: "Chicago" },
     { key: "dc", label: "DC" },
     { key: "philly", label: "Philly" },
+    { key: "la", label: "LA" },
+    { key: "sf", label: "SF" },
   ];
 
   const cleaned = summary.cleaned as number | undefined;

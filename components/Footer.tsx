@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import FeaturedVenues from "@/components/FeaturedVenues";
+import { cities } from "@/lib/cities";
 import type { Venue } from "@/lib/types";
 
 interface FooterProps {
@@ -26,36 +27,24 @@ export default function Footer({ featuredVenues, citySlug }: FooterProps = {}) {
           <div className="flex gap-8 text-sm text-text-muted">
             <nav aria-label="Cities" className="space-y-2">
               <h3 className="text-text font-medium">Cities</h3>
-              <Link
-                href="/nyc"
-                className="block hover:text-text transition-colors"
-              >
-                New York
-              </Link>
-              <Link
-                href="/chicago"
-                className="block hover:text-text transition-colors"
-              >
-                Chicago
-              </Link>
-              <Link
-                href="/nola"
-                className="block hover:text-text transition-colors"
-              >
-                New Orleans
-              </Link>
-              <Link
-                href="/la"
-                className="block hover:text-text transition-colors"
-              >
-                Los Angeles
-              </Link>
-              <Link
-                href="/sf"
-                className="block hover:text-text transition-colors"
-              >
-                San Francisco
-              </Link>
+              {cities.map((city) => (
+                city.live ? (
+                  <Link
+                    key={city.slug}
+                    href={`/${city.slug}`}
+                    className="block hover:text-text transition-colors"
+                  >
+                    {city.name}
+                  </Link>
+                ) : (
+                  <span
+                    key={city.slug}
+                    className="block text-text-muted/50"
+                  >
+                    {city.name}
+                  </span>
+                )
+              ))}
             </nav>
             <nav aria-label="Fifth Set" className="space-y-2">
               <h3 className="text-text font-medium">Fifth Set</h3>

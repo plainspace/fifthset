@@ -99,10 +99,12 @@ export async function pushToSupabase(
   }
 
   // Fetch venue and artist IDs for event insertion
+  const venueSlugs = data.venues.map((v) => v.slug);
   const { data: dbVenues } = await supabase
     .from("venues")
     .select("id, slug")
-    .eq("city_id", city.id);
+    .eq("city_id", city.id)
+    .in("slug", venueSlugs);
 
   const venueIdMap = new Map((dbVenues || []).map((v) => [v.slug, v.id]));
 

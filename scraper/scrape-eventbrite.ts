@@ -62,6 +62,7 @@ const SKIP_PATTERNS = [
   /\bgala\b(?!.*concert)/i,
   /\bcruise\b/i,
   /\btour\b(?!.*concert)/i,
+  /\bfestival\b(?!.*jazz)/i,
 ];
 
 // Events that are just a genre word with no artist info

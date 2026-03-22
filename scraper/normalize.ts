@@ -65,6 +65,11 @@ function normalizeArtistName(name: string): string {
     .replace(/\s+/g, " ")
     .trim();
 
+  // Strip trailing instrument annotations: "J. A. Granelli - bass?" -> "J. A. Granelli"
+  cleaned = cleaned
+    .replace(/\s*[-–]\s*(bass|piano|drums|guitar|sax|saxophone|trumpet|trombone|keys|keyboards|vocals|voice|violin|viola|cello|flute|clarinet|organ|harmonica|vibes|vibraphone|percussion|harp|banjo|mandolin|accordion|tuba)\??$/i, "")
+    .trim();
+
   return cleaned;
 }
 

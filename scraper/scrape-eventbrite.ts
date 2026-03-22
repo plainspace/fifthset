@@ -173,6 +173,17 @@ function lookupRegion(citySlug: string, locality: string, venueName: string): st
   return "";
 }
 
+// --- Address detection ---
+// Eventbrite sometimes puts "1020 Mission St" in location.name instead of
+// the actual venue name. Detect street addresses so we can handle them.
+
+const STREET_SUFFIXES = /\b(st|street|ave|avenue|blvd|boulevard|rd|road|dr|drive|ln|lane|ct|court|pl|place|way|pkwy|parkway|hwy|highway)\b/i;
+
+function looksLikeAddress(name: string): boolean {
+  // Starts with a number and contains a street suffix
+  return /^\d+\s/.test(name) && STREET_SUFFIXES.test(name);
+}
+
 // --- Types ---
 
 interface ScrapedEvent {
@@ -280,16 +291,28 @@ export async function scrapeEventbrite(citySlug: string): Promise<ScrapedEvent[]
       const artistName = normalizeText(evt.name || "").trim();
       if (!artistName) continue;
 
-      const venueName = normalizeText(evt.location?.name || "").trim();
+      // Eventbrite sometimes puts the street address in location.name
+      // instead of the venue name. Detect and skip these.
+      let venueName = normalizeText(evt.location?.name || "").trim();
       if (!venueName) continue;
+
+      if (looksLikeAddress(venueName)) {
+        // Try to extract venue name from the event title ("... at Venue")
+        const atMatch = artistName.match(/\bat\s+(.+)$/i);
+        if (atMatch) {
+          venueName = normalizeText(atMatch[1]).trim();
+        } else {
+          // Use locality as a fallback venue identifier
+          const locality = evt.location?.address?.addressLocality || "";
+          venueName = locality || venueName;
+        }
+      }
 
       const date = evt.startDate;
       if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) continue;
 
       const locality = evt.location?.address?.addressLocality || "";
       const region = lookupRegion(citySlug, locality, venueName);
-
-      const eventUrl = evt.url || undefined;
 
       // Dedupe
       const key = `${date}|${venueName}|${artistName}`;
@@ -302,7 +325,6 @@ export async function scrapeEventbrite(citySlug: string): Promise<ScrapedEvent[]
         region,
         venueName,
         artistName,
-        artistUrl: eventUrl,
       });
     }
 

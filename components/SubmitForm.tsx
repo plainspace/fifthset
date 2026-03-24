@@ -195,7 +195,6 @@ export default function SubmitForm() {
                 required
                 className={INPUT_CLASS}
               >
-                <option value="00">00</option>
                 {["00", "15", "30", "45"].map((m) => (
                   <option key={m} value={m}>{m}</option>
                 ))}

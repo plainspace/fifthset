@@ -66,6 +66,7 @@ export default function ListingsView({
             {heading} in <span className="text-accent">{city.name}</span>
           </h1>
           <p className="text-text-muted mt-2">{subtitle}</p>
+          <p className="text-xs font-mono text-text-muted/60 mt-1">Updated daily</p>
         </div>
         {featuredVenues.length > 0 && (
           <FeaturedVenues venues={featuredVenues} citySlug={city.slug} />

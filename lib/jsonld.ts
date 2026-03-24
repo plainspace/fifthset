@@ -29,7 +29,7 @@ export function websiteSchema() {
   };
 }
 
-export function eventSchema(event: Event, citySlug: string, date: string, timezone?: string) {
+export function eventSchema(event: Event, citySlug: string, date: string, timezone?: string, cityName?: string) {
   const tz = timezone || "America/New_York";
   const tzOffsets: Record<string, string> = {
     "America/New_York": "-05:00",
@@ -57,6 +57,8 @@ export function eventSchema(event: Event, citySlug: string, date: string, timezo
         address: {
           "@type": "PostalAddress",
           streetAddress: event.venue.address,
+          ...(cityName && { addressLocality: cityName }),
+          addressCountry: "US",
         },
       }),
       ...(event.venue.lat &&
@@ -78,7 +80,7 @@ export function eventSchema(event: Event, citySlug: string, date: string, timezo
   };
 }
 
-export function venueSchema(venue: Venue, citySlug: string) {
+export function venueSchema(venue: Venue, citySlug: string, cityName?: string) {
   return {
     "@context": "https://schema.org",
     "@type": "MusicVenue",
@@ -88,6 +90,8 @@ export function venueSchema(venue: Venue, citySlug: string) {
       address: {
         "@type": "PostalAddress",
         streetAddress: venue.address,
+        ...(cityName && { addressLocality: cityName }),
+        addressCountry: "US",
       },
     }),
     ...(venue.lat &&
@@ -99,6 +103,21 @@ export function venueSchema(venue: Venue, citySlug: string) {
         },
       }),
     ...(venue.website && { sameAs: [venue.website] }),
+  };
+}
+
+export function faqSchema(faqs: { question: string; answer: string }[]) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.map((faq) => ({
+      "@type": "Question",
+      name: faq.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: faq.answer,
+      },
+    })),
   };
 }
 

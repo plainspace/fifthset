@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { getCityBySlug, getCitySlugs } from "@/lib/cities";
 import { createClient } from "@/lib/supabase/server";
 import { getEvents } from "@/lib/supabase/queries";
@@ -74,8 +75,15 @@ export default async function CityPage({ params }: { params: Promise<{ city: str
         ])}
       />
       <JsonLd
-        data={events.slice(0, 20).map((e) => eventSchema(e, city.slug, e.date, city.timezone))}
+        data={events.slice(0, 20).map((e) => eventSchema(e, city.slug, e.date, city.timezone, city.name))}
       />
+      <nav aria-label="Breadcrumb" className="max-w-7xl mx-auto px-4 sm:px-6 pt-4 text-sm text-text-muted">
+        <ol className="flex items-center gap-1.5">
+          <li><Link href="/" className="hover:text-text transition-colors">Home</Link></li>
+          <li aria-hidden="true" className="text-border">/</li>
+          <li aria-current="page" className="text-text">{city.name}</li>
+        </ol>
+      </nav>
       <Suspense>
         <ListingsView
           city={city}

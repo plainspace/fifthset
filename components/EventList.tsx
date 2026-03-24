@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Event } from "@/lib/types";
 import { getTimeOfDay } from "@/lib/utils";
 import EventCard from "./EventCard";
@@ -23,7 +24,10 @@ export default function EventList({ events, citySlug }: EventListProps) {
       <div className="text-center py-16">
         <p className="text-text-muted text-lg">No shows found</p>
         <p className="text-text-subtle text-sm mt-2">
-          Try adjusting your filters or check another date
+          Try adjusting your filters or{" "}
+          <Link href={`/${citySlug}/map`} className="text-accent hover:text-accent-hover transition-colors underline underline-offset-2">
+            browse the map
+          </Link>
         </p>
       </div>
     );

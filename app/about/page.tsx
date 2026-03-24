@@ -2,6 +2,8 @@ import { Metadata } from "next";
 import Link from "next/link";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
+import JsonLd from "@/components/JsonLd";
+import { faqSchema } from "@/lib/jsonld";
 
 export const metadata: Metadata = {
   title: "About",
@@ -16,6 +18,24 @@ export default function AboutPage() {
   return (
     <>
       <Nav />
+      <JsonLd data={faqSchema([
+        {
+          question: "What is Fifth Set?",
+          answer: "Fifth Set curates live jazz listings across New York, Chicago, Washington DC, Philadelphia, New Orleans, Los Angeles, and San Francisco. Updated daily with show times, artists, and venue details.",
+        },
+        {
+          question: "How does Fifth Set work?",
+          answer: "Every day, we curate show times, artists, and venue details for every city we cover. Listings are filterable by neighborhood and time, and every venue is plotted on an interactive map.",
+        },
+        {
+          question: "Is Fifth Set free to use?",
+          answer: "Yes. Fifth Set is free for music fans. No accounts required, no algorithms deciding what you see.",
+        },
+        {
+          question: "Where does the name Fifth Set come from?",
+          answer: "In jazz clubs, the first four sets are the gig. The fifth set is what happens after... when the house band finishes and the musicians who came to listen start picking up instruments.",
+        },
+      ])} />
       <main className="pt-16 min-h-screen">
         <div className="max-w-2xl mx-auto px-4 sm:px-6 py-16">
           <h1 className="font-serif text-3xl sm:text-4xl text-text mb-8">

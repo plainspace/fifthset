@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Star } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { getFavoriteEvents, getFavoriteVenues } from "@/lib/supabase/queries";
@@ -60,6 +61,12 @@ export default function SavedPage() {
               <p className="text-text-muted">
                 Nothing saved yet. Star shows and venues to find them here.
               </p>
+              <Link
+                href="/"
+                className="inline-block mt-4 text-sm text-accent hover:text-accent-hover transition-colors underline underline-offset-2"
+              >
+                Browse tonight&apos;s shows
+              </Link>
             </div>
           ) : (
             <>

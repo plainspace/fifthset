@@ -10,6 +10,8 @@ import {
 } from 'lucide-react';
 import Nav from '@/components/Nav';
 import Footer from '@/components/Footer';
+import JsonLd from '@/components/JsonLd';
+import { faqSchema } from '@/lib/jsonld';
 
 export const metadata: Metadata = {
   title: 'For Venues',
@@ -74,6 +76,24 @@ export default function ForVenuesPage() {
   return (
     <>
       <Nav />
+      <JsonLd data={faqSchema([
+        {
+          question: "How much does it cost to be a Featured Venue on Fifth Set?",
+          answer: "Featured Venue placement is $99 per week. No monthly subscription, no tiers, no contracts.",
+        },
+        {
+          question: "What does a Featured Venue get?",
+          answer: "Featured badge on every event card, top of listings placement, a banner on your city page, homepage callout, analytics for the week, and inclusion in the weekly newsletter.",
+        },
+        {
+          question: "Is my venue already on Fifth Set?",
+          answer: "If you host live jazz in one of our covered cities, your shows are likely already listed. We curate listings daily and keep them accurate and up to date.",
+        },
+        {
+          question: "How do I claim a week?",
+          answer: "Email venues@fifthset.live with your preferred week and city. One venue per city per week, first come first served.",
+        },
+      ])} />
       <main className="pt-16 min-h-screen">
         {/* Hero */}
         <section className="max-w-3xl mx-auto px-4 sm:px-6 pt-20 pb-16 text-center">

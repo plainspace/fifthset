@@ -79,7 +79,7 @@ export default async function VenueDetailPage({
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
-      <JsonLd data={venueSchema(venue, citySlug)} />
+      <JsonLd data={venueSchema(venue, citySlug, city.name)} />
       <JsonLd
         data={breadcrumbSchema([
           { name: 'Home', url: '/' },
@@ -88,6 +88,18 @@ export default async function VenueDetailPage({
           { name: venue.name, url: `/${citySlug}/venues/${venue.slug}` },
         ])}
       />
+      {/* Breadcrumbs */}
+      <nav aria-label="Breadcrumb" className="mb-4 text-sm text-text-muted">
+        <ol className="flex items-center gap-1.5">
+          <li><Link href="/" className="hover:text-text transition-colors">Home</Link></li>
+          <li aria-hidden="true" className="text-border">/</li>
+          <li><Link href={`/${citySlug}`} className="hover:text-text transition-colors">{city.name}</Link></li>
+          <li aria-hidden="true" className="text-border">/</li>
+          <li><Link href={`/${citySlug}/venues`} className="hover:text-text transition-colors">Venues</Link></li>
+          <li aria-hidden="true" className="text-border">/</li>
+          <li aria-current="page" className="text-text truncate">{venue.name}</li>
+        </ol>
+      </nav>
       {/* Venue header */}
       <div
         className={cn(
@@ -118,7 +130,14 @@ export default async function VenueDetailPage({
                 </div>
                 <div className="flex items-center gap-1.5 mt-2 text-white/70">
                   <MapPin className="w-4 h-4" aria-hidden="true" />
-                  <span>{venue.address}</span>
+                  <a
+                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(venue.address)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-white transition-colors"
+                  >
+                    {venue.address}
+                  </a>
                 </div>
                 <div className="flex flex-wrap gap-4 mt-3">
                   {venue.website && (
@@ -155,7 +174,14 @@ export default async function VenueDetailPage({
             </div>
             <div className="flex items-center gap-1.5 mt-2 text-text-muted">
               <MapPin className="w-4 h-4" aria-hidden="true" />
-              <span>{venue.address}</span>
+              <a
+                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(venue.address)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-text transition-colors"
+              >
+                {venue.address}
+              </a>
             </div>
             <div className="flex flex-wrap gap-4 mt-4">
               {venue.website && (
@@ -188,7 +214,15 @@ export default async function VenueDetailPage({
         <h2 className="font-serif text-xl text-text mb-6">Upcoming Shows</h2>
 
         {Object.keys(eventsByDate).length === 0 ? (
-          <p className="text-text-muted">No upcoming shows listed</p>
+          <div className="text-center py-8">
+            <p className="text-text-muted">No upcoming shows listed</p>
+            <p className="text-sm text-text-muted/60 mt-2">
+              Check back later or{" "}
+              <Link href={`/${citySlug}`} className="text-accent hover:text-accent-hover transition-colors underline underline-offset-2">
+                browse tonight&apos;s shows
+              </Link>
+            </p>
+          </div>
         ) : (
           <div className="space-y-8">
             {Object.entries(eventsByDate).map(([date, dateEvents]) => (

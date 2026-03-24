@@ -5,6 +5,17 @@ export const revalidate = 300;
 export default async function sitemap() {
   const baseUrl = "https://fifthset.live";
 
+  const regionPages = cities
+    .filter((c) => c.live)
+    .flatMap((city) =>
+      city.regions.map((region) => ({
+        url: `${baseUrl}/${city.slug}/${region.slug}`,
+        lastModified: new Date(),
+        changeFrequency: "daily" as const,
+        priority: 0.8,
+      })),
+    );
+
   const cityPages = cities.flatMap((city) => [
     {
       url: `${baseUrl}/${city.slug}`,
@@ -71,5 +82,5 @@ export default async function sitemap() {
     },
   ];
 
-  return [...staticPages, ...cityPages];
+  return [...staticPages, ...cityPages, ...regionPages];
 }

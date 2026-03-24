@@ -1,4 +1,4 @@
-import { City } from "./types";
+import { City, Region } from "./types";
 
 export const cities: City[] = [
   {
@@ -125,4 +125,21 @@ export function getCityBySlug(slug: string): City | undefined {
 
 export function getCitySlugs(): string[] {
   return cities.map((c) => c.slug);
+}
+
+export function getRegionBySlug(
+  citySlug: string,
+  regionSlug: string,
+): { city: City; region: Region } | undefined {
+  const city = getCityBySlug(citySlug);
+  if (!city) return undefined;
+  const region = city.regions.find((r) => r.slug === regionSlug);
+  if (!region) return undefined;
+  return { city, region };
+}
+
+export function getAllCityRegionParams(): { city: string; region: string }[] {
+  return cities
+    .filter((c) => c.live)
+    .flatMap((c) => c.regions.map((r) => ({ city: c.slug, region: r.slug })));
 }

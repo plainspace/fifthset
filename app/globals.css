@@ -10,8 +10,8 @@
   --color-surface-hover: #2e2820;
   --color-accent-hover: #c17f3a;
   --color-text: #f0e6d3;
-  --color-text-muted: #9d9080;
-  --color-text-subtle: #7a6f60;
+  --color-text-muted: #b0a390;
+  --color-text-subtle: #998e7e;
   --color-live: #c45c3e;
   --color-success: #6b8f5e;
   --font-serif: "Playfair Display", Georgia, serif;
@@ -36,7 +36,7 @@ body {
   background-size: 256px 256px;
   opacity: 0.03;
   pointer-events: none;
-  z-index: 50;
+  z-index: 1;
 }
 
 /* Live pulse animation */
@@ -178,7 +178,7 @@ body {
   --secondary: #2e2820;
   --secondary-foreground: #f0e6d3;
   --muted: #2e2820;
-  --muted-foreground: #9d9080;
+  --muted-foreground: #b0a390;
   --accent: #d4a24e;
   --accent-foreground: #1a1714;
   --destructive: #c45c3e;

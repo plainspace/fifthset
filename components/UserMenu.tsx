@@ -46,9 +46,9 @@ export default function UserMenu() {
     return (
       <Link
         href="/login"
-        className="text-sm text-text-muted hover:text-text transition-colors"
+        className="text-sm text-text-muted hover:text-text transition-colors whitespace-nowrap"
       >
-        Sign In
+        Sign Up
       </Link>
     );
   }

@@ -425,7 +425,7 @@ export default function SubmitForm() {
 
       {/* Error message */}
       {status === "error" && (
-        <div role="alert" className="rounded-lg bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-400">
+        <div role="alert" className="rounded-lg bg-destructive/10 border border-destructive/20 px-4 py-3 text-sm text-destructive">
           {errorMsg || "Something went wrong. Please try again."}
         </div>
       )}

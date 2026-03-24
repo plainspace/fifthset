@@ -28,7 +28,11 @@ export default function MapView({
   const mapRef = useRef<maplibregl.Map | null>(null);
 
   useEffect(() => {
-    if (!mapContainer.current || mapRef.current) return;
+    if (!mapContainer.current) return;
+    if (mapRef.current) {
+      mapRef.current.remove();
+      mapRef.current = null;
+    }
 
     const map = new maplibregl.Map({
       container: mapContainer.current,
@@ -46,6 +50,13 @@ export default function MapView({
     map.addControl(new maplibregl.NavigationControl(), "top-right");
 
     map.on("load", () => {
+      const styles = getComputedStyle(document.documentElement);
+      const accentColor = styles.getPropertyValue("--color-accent").trim() || "#d4a24e";
+      const mutedColor = styles.getPropertyValue("--color-text-muted").trim() || "#8a7e6d";
+      const textColor = styles.getPropertyValue("--color-text").trim() || "#f0e6d3";
+      const surfaceColor = styles.getPropertyValue("--color-surface").trim() || "#242019";
+      const borderColor = styles.getPropertyValue("--color-border").trim() || "#3a3530";
+
       venues.forEach((venue) => {
         if (!venue.lat || !venue.lng) return;
 
@@ -67,22 +78,33 @@ export default function MapView({
           width: 100%;
           height: 100%;
           border-radius: 50%;
-          background: ${hasShows ? "#d4a24e" : "#8a7e6d"};
-          border: 2px solid ${isFeatured ? "#d4a24e" : "transparent"};
-          box-shadow: ${hasShows ? "0 0 12px rgba(212, 162, 78, 0.4)" : "none"};
+          background: ${hasShows ? accentColor : mutedColor};
+          border: 2px solid ${isFeatured ? accentColor : "transparent"};
+          box-shadow: ${hasShows ? `0 0 12px ${accentColor}66` : "none"};
           transition: transform 0.2s ease, box-shadow 0.2s ease;
         `;
 
         wrapper.appendChild(dot);
 
+        wrapper.setAttribute("role", "button");
+        wrapper.setAttribute("tabindex", "0");
+        wrapper.setAttribute("aria-label", `${venue.name}, ${venue.neighborhood}${hasShows ? `, ${venueEvents.length} shows` : ""}`);
+
+        wrapper.addEventListener("keydown", (e: KeyboardEvent) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            wrapper.click();
+          }
+        });
+
         wrapper.addEventListener("mouseenter", () => {
           dot.style.transform = "scale(1.5)";
-          dot.style.boxShadow = "0 0 20px rgba(212, 162, 78, 0.6)";
+          dot.style.boxShadow = `0 0 20px ${accentColor}99`;
         });
         wrapper.addEventListener("mouseleave", () => {
           dot.style.transform = "scale(1)";
           dot.style.boxShadow = hasShows
-            ? "0 0 12px rgba(212, 162, 78, 0.4)"
+            ? `0 0 12px ${accentColor}66`
             : "none";
         });
 
@@ -91,8 +113,8 @@ export default function MapView({
           .map(
             (e) =>
               `<div style="margin-top: 6px; font-size: 12px;">
-                <span style="color: #f0e6d3;">${e.artist.name}</span>
-                <span style="color: #8a7e6d; font-family: monospace; margin-left: 6px;">
+                <span style="color: ${textColor};">${e.artist.name}</span>
+                <span style="color: ${mutedColor}; font-family: monospace; margin-left: 6px;">
                   ${formatTime(e.start_time)}
                 </span>
               </div>`
@@ -105,23 +127,23 @@ export default function MapView({
           maxWidth: "240px",
           className: "fifthset-popup",
         }).setHTML(
-          `<div style="background: #242019; padding: 12px; border-radius: 8px; border: 1px solid #3a3530;">
+          `<div style="background: ${surfaceColor}; padding: 12px; border-radius: 8px; border: 1px solid ${borderColor};">
             <a href="/${citySlug}/venues/${venue.slug}"
-               style="font-family: 'Playfair Display', Georgia, serif; font-size: 15px; color: #d4a24e; text-decoration: none;">
+               style="font-family: 'Playfair Display', Georgia, serif; font-size: 15px; color: ${accentColor}; text-decoration: none;">
               ${venue.name}
             </a>
-            <div style="font-size: 12px; color: #8a7e6d; margin-top: 2px;">
+            <div style="font-size: 12px; color: ${mutedColor}; margin-top: 2px;">
               ${venue.neighborhood}
             </div>
             ${
               venueEvents.length > 0
-                ? `<div style="margin-top: 8px; border-top: 1px solid #3a3530; padding-top: 8px;">
-                    <div style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: #8a7e6d;">
+                ? `<div style="margin-top: 8px; border-top: 1px solid ${borderColor}; padding-top: 8px;">
+                    <div style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: ${mutedColor};">
                       Tonight
                     </div>
                     ${showsHtml}
                   </div>`
-                : `<div style="font-size: 12px; color: #8a7e6d; margin-top: 6px;">No shows tonight</div>`
+                : `<div style="font-size: 12px; color: ${mutedColor}; margin-top: 6px;">No shows tonight</div>`
             }
           </div>`
         );
@@ -151,11 +173,13 @@ export default function MapView({
           border-radius: 8px;
         }
         .fifthset-popup .maplibregl-popup-tip {
-          border-top-color: #3a3530;
+          border-top-color: var(--color-border, #3a3530);
         }
       `}</style>
       <div
         ref={mapContainer}
+        role="application"
+        aria-label="Interactive jazz venue map"
         className="w-full h-full rounded-lg overflow-hidden"
         style={{ minHeight: "400px" }}
       />

@@ -113,11 +113,11 @@ export default async function VenueDetailPage({
                     {venue.name}
                   </h1>
                   {isFeatured && (
-                    <Star className="w-5 h-5 text-accent fill-accent" />
+                    <Star className="w-5 h-5 text-accent fill-accent" aria-hidden="true" />
                   )}
                 </div>
                 <div className="flex items-center gap-1.5 mt-2 text-white/70">
-                  <MapPin className="w-4 h-4" />
+                  <MapPin className="w-4 h-4" aria-hidden="true" />
                   <span>{venue.address}</span>
                 </div>
                 <div className="flex flex-wrap gap-4 mt-3">
@@ -128,7 +128,7 @@ export default async function VenueDetailPage({
                       rel="noopener noreferrer"
                       className="flex items-center gap-1.5 text-sm text-accent hover:text-accent-hover transition-colors"
                     >
-                      <ExternalLink className="w-4 h-4" />
+                      <ExternalLink className="w-4 h-4" aria-hidden="true" />
                       Website
                     </a>
                   )}
@@ -137,7 +137,7 @@ export default async function VenueDetailPage({
                       href={`tel:${venue.phone}`}
                       className="flex items-center gap-1.5 text-sm text-white/60 hover:text-white transition-colors"
                     >
-                      <Phone className="w-4 h-4" />
+                      <Phone className="w-4 h-4" aria-hidden="true" />
                       {venue.phone}
                     </a>
                   )}
@@ -150,11 +150,11 @@ export default async function VenueDetailPage({
             <div className="flex items-center gap-2">
               <h1 className="font-serif text-3xl text-text">{venue.name}</h1>
               {isFeatured && (
-                <Star className="w-5 h-5 text-accent fill-accent" />
+                <Star className="w-5 h-5 text-accent fill-accent" aria-hidden="true" />
               )}
             </div>
             <div className="flex items-center gap-1.5 mt-2 text-text-muted">
-              <MapPin className="w-4 h-4" />
+              <MapPin className="w-4 h-4" aria-hidden="true" />
               <span>{venue.address}</span>
             </div>
             <div className="flex flex-wrap gap-4 mt-4">
@@ -165,7 +165,7 @@ export default async function VenueDetailPage({
                   rel="noopener noreferrer"
                   className="flex items-center gap-1.5 text-sm text-accent hover:text-accent-hover transition-colors"
                 >
-                  <ExternalLink className="w-4 h-4" />
+                  <ExternalLink className="w-4 h-4" aria-hidden="true" />
                   Website
                 </a>
               )}
@@ -174,7 +174,7 @@ export default async function VenueDetailPage({
                   href={`tel:${venue.phone}`}
                   className="flex items-center gap-1.5 text-sm text-text-muted hover:text-text transition-colors"
                 >
-                  <Phone className="w-4 h-4" />
+                  <Phone className="w-4 h-4" aria-hidden="true" />
                   {venue.phone}
                 </a>
               )}
@@ -210,7 +210,7 @@ export default async function VenueDetailPage({
                           {event.artist.name}
                         </p>
                         <div className="flex items-center gap-1.5 mt-1 text-sm text-text-muted">
-                          <Clock className="w-3.5 h-3.5" />
+                          <Clock className="w-3.5 h-3.5" aria-hidden="true" />
                           <span className="font-mono">
                             {formatTime(event.start_time)}
                             {event.end_time &&

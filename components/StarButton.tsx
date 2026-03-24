@@ -53,7 +53,7 @@ export default function StarButton({ type, id, initialStarred = false }: StarBut
       aria-label={starred ? "Remove from saved" : "Save"}
       aria-pressed={starred}
       className={cn(
-        "p-1.5 rounded-full transition-all",
+        "p-2.5 rounded-full transition-all min-w-[44px] min-h-[44px] flex items-center justify-center",
         starred
           ? "text-accent"
           : "text-text-muted/40 hover:text-text-muted",

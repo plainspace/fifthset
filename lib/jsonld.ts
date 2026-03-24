@@ -29,16 +29,24 @@ export function websiteSchema() {
   };
 }
 
-export function eventSchema(event: Event, citySlug: string, date: string) {
-  const startDateTime = `${date}T${event.start_time}:00`;
+export function eventSchema(event: Event, citySlug: string, date: string, timezone?: string) {
+  const tz = timezone || "America/New_York";
+  const tzOffsets: Record<string, string> = {
+    "America/New_York": "-05:00",
+    "America/Chicago": "-06:00",
+    "America/Los_Angeles": "-08:00",
+  };
+  const offset = tzOffsets[tz] || "-05:00";
+  const startDateTime = `${date}T${event.start_time}:00${offset}`;
   const endDateTime = event.end_time
-    ? `${date}T${event.end_time}:00`
+    ? `${date}T${event.end_time}:00${offset}`
     : undefined;
 
   return {
     "@context": "https://schema.org",
     "@type": "MusicEvent",
     name: `${event.artist.name} at ${event.venue.name}`,
+    image: `${SITE_URL}/api/og?title=${encodeURIComponent(event.artist.name)}&subtitle=${encodeURIComponent(event.venue.name)}`,
     startDate: startDateTime,
     ...(endDateTime && { endDate: endDateTime }),
     location: {

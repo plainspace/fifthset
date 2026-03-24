@@ -62,9 +62,9 @@ export default function FilterBar({
   return (
     <div className="space-y-3 overflow-hidden">
       {/* Region filters */}
-      <div className="relative">
+      <div role="group" aria-label="Filter by area" className="relative">
         <div ref={regionScroll.ref} className="flex items-center gap-2 overflow-x-auto py-1 scrollbar-hide">
-          <span className="text-xs uppercase tracking-wider text-text-muted shrink-0">
+          <span aria-hidden="true" className="text-xs uppercase tracking-wider text-text-muted shrink-0">
             Area
           </span>
           <button
@@ -111,9 +111,9 @@ export default function FilterBar({
       </div>
 
       {/* Time of day filters */}
-      <div className="relative">
+      <div role="group" aria-label="Filter by time of day" className="relative">
         <div ref={timeScroll.ref} className="flex items-center gap-2 overflow-x-auto py-1 scrollbar-hide">
-          <span className="text-xs uppercase tracking-wider text-text-muted shrink-0">
+          <span aria-hidden="true" className="text-xs uppercase tracking-wider text-text-muted shrink-0">
             Time
           </span>
           <button

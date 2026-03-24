@@ -15,9 +15,9 @@ export default function Footer({ featuredVenues, citySlug }: FooterProps = {}) {
         <div className="flex flex-col sm:flex-row justify-between items-start gap-8">
           <div className="space-y-6">
             <div>
-              <span className="font-serif text-lg text-accent">Fifth Set</span>
+              <Link href="/" className="font-serif text-lg text-accent hover:text-accent-hover transition-colors">Fifth Set</Link>
               <p className="text-text-muted text-sm mt-2 max-w-xs text-balance">
-                Find live jazz tonight. Every city, every venue, every set.
+                Find live jazz tonight. Updated daily. No algorithms.
               </p>
             </div>
             {featuredVenues && featuredVenues.length > 0 && citySlug && (

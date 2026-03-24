@@ -74,7 +74,7 @@ export default async function CityPage({ params }: { params: Promise<{ city: str
         ])}
       />
       <JsonLd
-        data={events.slice(0, 20).map((e) => eventSchema(e, city.slug, e.date))}
+        data={events.slice(0, 20).map((e) => eventSchema(e, city.slug, e.date, city.timezone))}
       />
       <Suspense>
         <ListingsView

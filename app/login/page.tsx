@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Mail, Loader2 } from "lucide-react";
 import { signInWithOtp, verifyOtp } from "@/lib/supabase/auth";
@@ -11,6 +11,8 @@ type Step = "email" | "code";
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const returnTo = searchParams.get("from") || "/nyc";
   const [step, setStep] = useState<Step>("email");
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
@@ -47,7 +49,7 @@ export default function LoginPage() {
       return;
     }
 
-    router.push("/nyc");
+    router.push(returnTo);
   }
 
   const inputClass =
@@ -65,6 +67,13 @@ export default function LoginPage() {
               ? "Enter your email to sign in or create an account"
               : "Check your email for a code"}
           </p>
+          {step === "email" && (
+            <div className="flex flex-col gap-1.5 mt-3">
+              <p className="text-sm text-text-muted">Save shows to your list</p>
+              <p className="text-sm text-text-muted">Set your home city</p>
+              <p className="text-sm text-text-muted">Never miss a set</p>
+            </div>
+          )}
         </div>
 
         <div className="bg-surface rounded-2xl border border-border p-8">
@@ -85,7 +94,7 @@ export default function LoginPage() {
               </div>
 
               {error && (
-                <p role="alert" className="text-red-400 text-sm px-1">{error}</p>
+                <p role="alert" className="text-destructive text-sm px-1">{error}</p>
               )}
 
               <button
@@ -119,7 +128,7 @@ export default function LoginPage() {
               />
 
               {error && (
-                <p role="alert" className="text-red-400 text-sm px-1">{error}</p>
+                <p role="alert" className="text-destructive text-sm px-1">{error}</p>
               )}
 
               <button

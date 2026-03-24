@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Search as SearchIcon, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -14,7 +14,7 @@ export default function Search() {
   const params = useParams();
   const router = useRouter();
   const citySlug = (params.city as string) || "nyc";
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -30,6 +30,34 @@ export default function Search() {
 
   useEffect(() => {
     if (open) inputRef.current?.focus();
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key !== "Tab") return;
+      const dialog = document.querySelector<HTMLElement>("[role='dialog']");
+      if (!dialog) return;
+      const focusable = dialog.querySelectorAll<HTMLElement>(
+        'input, button, [tabindex]:not([tabindex="-1"])'
+      );
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey) {
+        if (document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else {
+        if (document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
   }, [open]);
 
   useEffect(() => {

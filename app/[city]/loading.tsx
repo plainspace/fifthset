@@ -2,7 +2,8 @@ import SkeletonCard from "@/components/SkeletonCard";
 
 export default function Loading() {
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8" role="status" aria-busy="true">
+      <span className="sr-only">Loading shows...</span>
       <div className="mb-8">
         <div className="h-10 bg-surface rounded w-1/3 mb-3 animate-pulse" />
         <div className="h-4 bg-surface rounded w-1/4 animate-pulse" />

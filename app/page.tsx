@@ -201,8 +201,13 @@ export default async function HomePage() {
                   </Link>
                   <div className="mt-2 flex flex-wrap gap-x-2 gap-y-1">
                     {city.regions.map((region, i) => (
-                      <span key={region.slug} className="text-sm text-text-muted">
-                        {region.name}
+                      <span key={region.slug} className="text-sm">
+                        <Link
+                          href={`/${city.slug}/${region.slug}`}
+                          className="text-text-muted hover:text-text transition-colors"
+                        >
+                          {region.name}
+                        </Link>
                         {i < city.regions.length - 1 && (
                           <span className="text-border ml-2" aria-hidden="true">
                             /

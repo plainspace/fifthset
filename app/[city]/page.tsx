@@ -93,6 +93,23 @@ export default async function CityPage({ params }: { params: Promise<{ city: str
           showLabel="tonight"
         />
       </Suspense>
+
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 pb-16">
+        <h2 className="font-serif text-xl text-text mb-4">
+          Browse by neighborhood
+        </h2>
+        <div className="flex flex-wrap gap-2">
+          {city.regions.map((region) => (
+            <Link
+              key={region.slug}
+              href={`/${city.slug}/${region.slug}`}
+              className="px-3 py-1.5 text-sm rounded-full bg-surface text-text-muted hover:text-text transition-colors"
+            >
+              {region.name}
+            </Link>
+          ))}
+        </div>
+      </section>
     </>
   );
 }

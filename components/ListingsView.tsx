@@ -15,6 +15,7 @@ interface ListingsViewProps {
   heading: string;
   subtitle: string;
   showLabel: string;
+  hideCity?: boolean;
 }
 
 export default function ListingsView({
@@ -23,6 +24,7 @@ export default function ListingsView({
   heading,
   subtitle,
   showLabel,
+  hideCity,
 }: ListingsViewProps) {
   const {
     activeRegions,
@@ -63,7 +65,7 @@ export default function ListingsView({
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 mb-8">
         <div>
           <h1 className="font-serif text-3xl sm:text-4xl text-text text-pretty">
-            {heading} in <span className="text-accent">{city.name}</span>
+            {heading}{!hideCity && <> in <span className="text-accent">{city.name}</span></>}
           </h1>
           <p className="text-text-muted mt-2">{subtitle}</p>
           <p className="text-xs font-mono text-text-muted/60 mt-1">Updated daily</p>

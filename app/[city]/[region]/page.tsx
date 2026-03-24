@@ -126,6 +126,7 @@ export default async function RegionPage({
           city={city}
           events={regionEvents}
           heading={`Jazz in ${region.name}`}
+          hideCity
           subtitle={`Tonight \u00A0/\u00A0 ${formatDateFull(today)}`}
           showLabel="tonight"
         />
